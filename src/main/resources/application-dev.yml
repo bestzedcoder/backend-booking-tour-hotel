@@ -1,0 +1,27 @@
+# setup database
+spring:
+# setup database
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${USER_NAME}
+    password: ${PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+
+# global environment
+
+application:
+  security:
+    secretKey: ${JWT_SECRET_KEY}
+    accessExpiration: ${JWT_ACCESS_EXPIRATION}
+    refreshExpiration: ${JWT_REFRESH_EXPIRATION}
+

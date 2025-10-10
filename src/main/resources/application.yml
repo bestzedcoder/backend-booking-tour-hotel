@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: Booking Tour & Hotel
+  profiles:
+    active: dev
+
+# port
+server:
+  port:
+#prefix endpoint
+  servlet:
+    context-path: /api/
