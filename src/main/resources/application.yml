@@ -3,10 +3,13 @@ spring:
     name: Booking Tour & Hotel
   profiles:
     active: dev
+  security:
+    user:
+      name: username
 
 # port
 server:
-  port:
+  port: 8080
 #prefix endpoint
   servlet:
     context-path: /api/
