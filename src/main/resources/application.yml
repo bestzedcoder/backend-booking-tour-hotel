@@ -6,6 +6,17 @@ spring:
   security:
     user:
       name: username
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${USERNAME_MAIL}
+    password: ${PASSWORD_MAIL}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 # port
 server:

@@ -47,6 +47,6 @@ public class JwtValidationFilter extends OncePerRequestFilter {
 
   protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
     String requestURI = request.getRequestURI();
-    return requestURI.contains("/login");
+    return requestURI.contains("/auth/");
   }
 }

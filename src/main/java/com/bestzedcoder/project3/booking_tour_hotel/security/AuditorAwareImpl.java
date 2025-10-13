@@ -12,7 +12,9 @@ public class AuditorAwareImpl implements AuditorAware<String> {
   public Optional<String> getCurrentAuditor() {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     if (auth != null && auth.isAuthenticated()) {
-      return Optional.of(((User)auth.getPrincipal()).getUsername());
+      String username = ((User)auth.getPrincipal()).getUsername();
+      System.out.println("username: " + username);
+      return Optional.of(username);
     }
     // Nếu không có user (ví dụ CommandLineRunner), gán mặc định
     return Optional.of("system");

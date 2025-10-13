@@ -20,6 +20,9 @@ public class CustomizeAuthenticationProvider implements AuthenticationProvider {
     String username = authentication.getName();
     String password = authentication.getCredentials().toString();
     UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+    if (!userDetails.isEnabled()) {
+      throw new UnauthorizedException("Tài khoản chưa được kích hoạt");
+    }
     if(this.passwordEncoder.matches(password, userDetails.getPassword())) {
       return new UsernamePasswordAuthenticationToken(userDetails , password , userDetails.getAuthorities());
     } else {
