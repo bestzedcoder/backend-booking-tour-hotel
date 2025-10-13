@@ -37,6 +37,4 @@ public class Role {
   @ManyToMany(mappedBy = "roles")
   @JsonIgnore
   private Set<User> users = new HashSet<>();
-
-
 }

@@ -1,6 +1,7 @@
 package com.bestzedcoder.project3.booking_tour_hotel.service.iml;
 
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserCreatingRequest;
+import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserUpdatingRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.UserCreatingResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.ErrorCode;
@@ -10,6 +11,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.model.User;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.RoleRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IUserService;
+import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,7 +45,7 @@ public class UserService implements IUserService {
         .password(hashedPassword)
         .email(email)
         .enabled(true) // tam thoi test
-        .fullName(request.getFullName())
+        .fullName(request.getFullName() == null ? "anonymous" : request.getFullName())
         .phone(request.getPhone())
         .roles(Set.of(role))
         .build();
@@ -70,5 +72,28 @@ public class UserService implements IUserService {
       throw new BadRequestException("User not found with id: " + id);
     });
     return ApiResponse.builder().success(true).data(user).message("success").build();
+  }
+
+  @Override
+  public ApiResponse<?> updateUserById(Long id, UserUpdatingRequest request)
+      throws BadRequestException {
+    User user = this.userRepository.findById(id).orElseThrow(() -> {throw new BadRequestException("User not found with id: " + id);});
+    String fullName = request.getFullName();
+    String phone = request.getPhone();
+    String []roles = request.getRoles();
+    if (roles.length == 0) {
+      roles = new String[]{"ROLE_CUSTOMER"};
+    }
+    HashSet<Role> roleSet = new HashSet<>();
+    for (String role : roles) {
+      Role roleEnum = this.roleRepository.findByName(role);
+      if (roleEnum == null) {
+        throw new BadRequestException(ErrorCode.ROLE_NOT_EXISTED.getMessage());
+      }
+      roleSet.add(roleEnum);
+    }
+    user.setRoles(roleSet);
+    this.userRepository.save(user);
+    return ApiResponse.builder().success(true).data(user).build();
   }
 }

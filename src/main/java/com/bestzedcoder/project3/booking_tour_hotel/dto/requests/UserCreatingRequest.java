@@ -15,7 +15,7 @@ public class UserCreatingRequest {
   private String password;
 
   // fullName có thể null hoặc rỗng → sẽ được set mặc định là "Ẩn danh"
-  private String fullName = "anonymous";
+  private String fullName;
 
   @NotBlank(message = "Email cannot be blank")
   @Email(message = "Email is not valid")

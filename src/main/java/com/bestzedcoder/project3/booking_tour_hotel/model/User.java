@@ -1,26 +1,23 @@
 package com.bestzedcoder.project3.booking_tour_hotel.model;
 
+import com.bestzedcoder.project3.booking_tour_hotel.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -30,14 +27,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 @Entity
 @Table(name = "_user")
 @EntityListeners(AuditingEntityListener.class)
-public class User implements UserDetails  {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+public class User extends BaseEntity implements UserDetails  {
 
   @Column(unique = true)
   private String username;
@@ -100,4 +94,5 @@ public class User implements UserDetails  {
   public boolean isEnabled() {
     return this.enabled;
   }
+
 }
