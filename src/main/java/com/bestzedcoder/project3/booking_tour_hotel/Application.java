@@ -1,10 +1,11 @@
 package com.bestzedcoder.project3.booking_tour_hotel;
 
 import com.bestzedcoder.project3.booking_tour_hotel.model.Role;
+import com.bestzedcoder.project3.booking_tour_hotel.model.User;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.RoleRepository;
-import java.util.ArrayList;
-import java.util.Arrays;
+import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -12,14 +13,16 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-@EnableJpaAuditing
+@EnableJpaAuditing(auditorAwareRef = "auditorAware")
 @EnableMethodSecurity
 @SpringBootApplication
 @RequiredArgsConstructor
 public class Application implements CommandLineRunner {
 	private final RoleRepository roleRepository;
-
+	private final UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
 	@Value("${DATABASE_URL}")
 	private String databaseURL;
 
@@ -38,6 +41,12 @@ public class Application implements CommandLineRunner {
 					new Role("ROLE_BUSINESS")
 			);
 			roleRepository.saveAll(defaultRoles);
+		}
+
+		var user = this.userRepository.findByUsername("admin");
+		if (user == null) {
+			User admin = User.builder().roles(Set.of(this.roleRepository.findByName("ROLE_ADMIN"))).phone("0232323222").fullName("admin").email("admin@gmail.com").username("admin").password(this.passwordEncoder.encode("admin")).enabled(true).build();
+			this.userRepository.save(admin);
 		}
 
 	}
