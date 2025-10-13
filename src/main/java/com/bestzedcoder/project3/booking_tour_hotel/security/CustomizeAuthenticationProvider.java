@@ -21,7 +21,7 @@ public class CustomizeAuthenticationProvider implements AuthenticationProvider {
     String password = authentication.getCredentials().toString();
     UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
     if(this.passwordEncoder.matches(password, userDetails.getPassword())) {
-      return new UsernamePasswordAuthenticationToken(username , password , userDetails.getAuthorities());
+      return new UsernamePasswordAuthenticationToken(userDetails , password , userDetails.getAuthorities());
     } else {
       throw new UnauthorizedException("Invalid password");
     }
