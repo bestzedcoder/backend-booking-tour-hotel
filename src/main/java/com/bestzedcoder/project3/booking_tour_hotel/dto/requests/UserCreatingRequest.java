@@ -23,4 +23,5 @@ public class UserCreatingRequest {
 
   @NotBlank(message = "Phone number cannot be blank")
   private String phone;
+
 }

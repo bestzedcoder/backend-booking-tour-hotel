@@ -4,11 +4,14 @@ import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserCreatingReq
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.UserCreatingResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.ErrorCode;
+import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestException;
+import com.bestzedcoder.project3.booking_tour_hotel.model.Role;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
+import com.bestzedcoder.project3.booking_tour_hotel.repository.RoleRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IUserService;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Service;
 public class UserService implements IUserService {
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
+  private final RoleRepository roleRepository;
 
   @Override
   public ApiResponse<UserCreatingResponse> create(UserCreatingRequest request)
@@ -33,6 +37,7 @@ public class UserService implements IUserService {
       throw new BadRequestException(ErrorCode.USERNAME_EXISTED.getMessage());
     }
     String hashedPassword = passwordEncoder.encode(password);
+    Role role = this.roleRepository.findByName("ROLE_CUSTOMER");
     var newUser = User.builder()
         .username(username)
         .password(hashedPassword)
@@ -40,6 +45,7 @@ public class UserService implements IUserService {
         .enabled(true) // tam thoi test
         .fullName(request.getFullName())
         .phone(request.getPhone())
+        .roles(Set.of(role))
         .build();
     this.userRepository.save(newUser);
     var response = new UserCreatingResponse(
@@ -57,5 +63,12 @@ public class UserService implements IUserService {
 
   private String hashPassword(String password) {
     return passwordEncoder.encode(password);
+  }
+
+  public ApiResponse<?> getUserById(Long id) throws BadRequestException {
+    User user = this.userRepository.findById(id).orElseThrow(() -> {
+      throw new BadRequestException("User not found with id: " + id);
+    });
+    return ApiResponse.builder().success(true).data(user).message("success").build();
   }
 }

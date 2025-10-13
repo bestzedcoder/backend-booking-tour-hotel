@@ -7,4 +7,5 @@ import org.apache.coyote.BadRequestException;
 
 public interface IUserService {
   ApiResponse<UserCreatingResponse> create(UserCreatingRequest request) throws BadRequestException;
+  ApiResponse<?> getUserById(Long id) throws BadRequestException;
 }

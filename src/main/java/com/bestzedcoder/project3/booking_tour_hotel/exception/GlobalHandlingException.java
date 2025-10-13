@@ -1,9 +1,9 @@
 package com.bestzedcoder.project3.booking_tour_hotel.exception;
 
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
+import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestException;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
