@@ -9,4 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LoginResponse {
   private String access_token;
+  private boolean updateProfile;
 }

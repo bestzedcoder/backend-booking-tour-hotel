@@ -11,5 +11,6 @@ public class UserUpdatingRequest {
   private String fullName;
   @NotBlank(message = "Phone number cannot be blank")
   private String phone;
+  private String address;
   private String[] roles;
 }

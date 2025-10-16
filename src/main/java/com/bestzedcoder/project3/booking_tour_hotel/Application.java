@@ -1,5 +1,6 @@
 package com.bestzedcoder.project3.booking_tour_hotel;
 
+import com.bestzedcoder.project3.booking_tour_hotel.model.Profile;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Role;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.RoleRepository;
@@ -45,7 +46,9 @@ public class Application implements CommandLineRunner {
 
 		var user = this.userRepository.findByUsername("admin");
 		if (user == null) {
-			User admin = User.builder().roles(Set.of(this.roleRepository.findByName("ROLE_ADMIN"))).phone("0232323222").fullName("admin").email("admin@gmail.com").username("admin").password(this.passwordEncoder.encode("admin")).enabled(true).build();
+			Profile profile = Profile.builder().fullName("admin").phoneNumber("000000000").build();
+			User admin = User.builder().roles(Set.of(this.roleRepository.findByName("ROLE_ADMIN"))).email("admin@gmail.com").username("admin").password(this.passwordEncoder.encode("admin")).enabled(true).profile(profile).updateProfile(true).build();
+			profile.setUser(admin);
 			this.userRepository.save(admin);
 		}
 

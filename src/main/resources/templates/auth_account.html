@@ -25,8 +25,8 @@
       display: inline-block;
       margin-top: 20px;
       padding: 10px 18px;
-      background-color: #0d6efd;
-      color: white;
+      background-color: #777;
+      color: black;
       text-decoration: none;
       border-radius: 5px;
     }
@@ -43,7 +43,7 @@
   <p>Cảm ơn bạn đã đăng ký tài khoản tại hệ thống Booking Tour & Hotel.</p>
   <p>Vui lòng nhấn vào nút bên dưới để xác thực tài khoản của bạn:</p>
 
-  <a class="verify-button" th:href="${verificationUrl}">Xác thực tài khoản</a>
+  <a class="verify-button" th:href="${verificationUrl}" th:text="${code}">Mã code</a>
 
   <p class="footer">
     Liên kết này sẽ hết hạn sau 15 phút.<br>

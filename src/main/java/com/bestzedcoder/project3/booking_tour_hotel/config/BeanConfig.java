@@ -19,4 +19,5 @@ public class BeanConfig {
   public AuditorAware<String> auditorAware() {
     return new AuditorAwareImpl();
   }
+
 }

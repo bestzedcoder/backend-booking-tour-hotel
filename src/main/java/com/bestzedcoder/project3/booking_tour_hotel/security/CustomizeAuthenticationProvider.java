@@ -23,6 +23,9 @@ public class CustomizeAuthenticationProvider implements AuthenticationProvider {
     if (!userDetails.isEnabled()) {
       throw new UnauthorizedException("Tài khoản chưa được kích hoạt");
     }
+    if(!userDetails.isAccountNonExpired()) {
+      throw new UnauthorizedException("Tài khoản đã bị khóa");
+    }
     if(this.passwordEncoder.matches(password, userDetails.getPassword())) {
       return new UsernamePasswordAuthenticationToken(userDetails , password , userDetails.getAuthorities());
     } else {

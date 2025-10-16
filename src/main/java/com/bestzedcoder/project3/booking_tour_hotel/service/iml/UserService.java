@@ -6,8 +6,10 @@ import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.UserCreatingResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.ErrorCode;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestException;
+import com.bestzedcoder.project3.booking_tour_hotel.model.Profile;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Role;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
+import com.bestzedcoder.project3.booking_tour_hotel.repository.ProfileRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.RoleRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IUserService;
@@ -23,6 +25,7 @@ public class UserService implements IUserService {
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
   private final RoleRepository roleRepository;
+  private final ProfileRepository profileRepository;
 
   @Override
   public ApiResponse<UserCreatingResponse> create(UserCreatingRequest request)
@@ -40,22 +43,25 @@ public class UserService implements IUserService {
     }
     String hashedPassword = passwordEncoder.encode(password);
     Role role = this.roleRepository.findByName("ROLE_CUSTOMER");
-    var newUser = User.builder()
+    Profile profile = Profile.builder().fullName(request.getFullName() == null ? "anonymous" : request.getFullName()).address(
+        request.getAddress()).phoneNumber(request.getPhone()).build();
+    User newUser = User.builder()
         .username(username)
         .password(hashedPassword)
         .email(email)
-        .enabled(true) // tam thoi test
-        .fullName(request.getFullName() == null ? "anonymous" : request.getFullName())
-        .phone(request.getPhone())
+        .enabled(true)
+        .updateProfile(true)
+        .profile(profile)
         .roles(Set.of(role))
         .build();
+    profile.setUser(newUser);
     this.userRepository.save(newUser);
     var response = new UserCreatingResponse(
         newUser.getUsername(),
-        newUser.getFullName(),
+        newUser.getProfile().getFullName(),
         newUser.getPassword(),
         newUser.getEmail(),
-        newUser.getPhone()
+        newUser.getProfile().getPhoneNumber()
     );
     return ApiResponse.<UserCreatingResponse>builder()
         .success(true)
@@ -67,6 +73,7 @@ public class UserService implements IUserService {
     return passwordEncoder.encode(password);
   }
 
+  @Override
   public ApiResponse<?> getUserById(Long id) throws BadRequestException {
     User user = this.userRepository.findById(id).orElseThrow(() -> {
       throw new BadRequestException("User not found with id: " + id);
@@ -92,7 +99,16 @@ public class UserService implements IUserService {
       }
       roleSet.add(roleEnum);
     }
+    Profile profile = this.profileRepository.findProfileByUserId(user.getId()).orElseThrow(() -> {
+      throw new BadRequestException("Profile not found with user id: " + user.getId());
+    });
+    profile.setFullName(fullName);
+    profile.setPhoneNumber(phone);
+    profile.setAddress(request.getAddress());
     user.setRoles(roleSet);
+    user.setProfile(profile);
+    user.setUpdateProfile(true);
+    profile.setUser(user);
     this.userRepository.save(user);
     return ApiResponse.builder().success(true).data(user).build();
   }

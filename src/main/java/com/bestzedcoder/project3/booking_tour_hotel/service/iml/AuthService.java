@@ -8,15 +8,15 @@ import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestExceptio
 import com.bestzedcoder.project3.booking_tour_hotel.exception.UnauthorizedException;
 import com.bestzedcoder.project3.booking_tour_hotel.mail.IEmailService;
 import com.bestzedcoder.project3.booking_tour_hotel.mail.MailDetails;
+import com.bestzedcoder.project3.booking_tour_hotel.model.Profile;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Role;
-import com.bestzedcoder.project3.booking_tour_hotel.model.Token;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
+import com.bestzedcoder.project3.booking_tour_hotel.repository.ProfileRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.RoleRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.security.JwtUtils;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IAuthService;
 import com.bestzedcoder.project3.booking_tour_hotel.service.ITokenService;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +37,7 @@ public class AuthService implements IAuthService {
   private final IEmailService emailService;
   private final ITokenService tokenService;
   private final RoleRepository roleRepository;
+  private final ProfileRepository profileRepository;
 
   @Value("${application.security.secretKey}")
   private String secretKey;
@@ -51,8 +52,8 @@ public class AuthService implements IAuthService {
     }
     System.out.println(authenticated.getPrincipal());
     User user = (User) authenticated.getPrincipal();
-    String access_token = this.jwtUtils.JwtGenerator(user.getUsername() , user.getAuthorities() , secretKey , expirationTime);
-    LoginResponse loginResponse = new LoginResponse(access_token);
+    String access_token = this.jwtUtils.JwtGenerator(user, secretKey , expirationTime);
+    LoginResponse loginResponse = new LoginResponse(access_token ,  user.getUpdateProfile());
     return ApiResponse.<LoginResponse>builder().success(true).data(loginResponse).message("login success").build();
   }
 
@@ -71,12 +72,14 @@ public class AuthService implements IAuthService {
     }
 
     Role role = this.roleRepository.findByName("ROLE_CUSTOMER");
-
-    User newUser = User.builder().email(email).username(username).password(this.passwordEncoder.encode(password)).fullName("New Customer").enabled(false).roles(
+    Profile profile = Profile.builder().fullName("New Customer").build();
+    profile = this.profileRepository.save(profile);
+    User newUser = User.builder().email(email).username(username).password(this.passwordEncoder.encode(password)).profile(profile).enabled(false).updateProfile(false).roles(
         Set.of(role)).build();
+    profile.setUser(newUser);
     this.userRepository.save(newUser);
     String token = this.tokenService.generateAndSaveToken(newUser);
-    MailDetails mailDetails = MailDetails.builder().to(newUser.getEmail()).token(token).username(newUser.getFullName()).build();
+    MailDetails mailDetails = MailDetails.builder().to(newUser.getEmail()).token(token).username(newUser.getProfile().getFullName()).build();
     this.emailService.sendVerificationEmail(mailDetails);
     return ApiResponse.builder()
         .success(true)
@@ -93,9 +96,10 @@ public class AuthService implements IAuthService {
     }
     User user = this.userRepository.findByEmail(email);
     user.setEnabled(true);
+    user.setUpdateProfile(false);
     this.userRepository.save(user);
-    return ApiResponse.builder().success(true).message("auth account success").data(Map.of("access_token" , this.jwtUtils.JwtGenerator(user.getUsername() , user.getAuthorities() , secretKey , expirationTime))).build();
+    return ApiResponse.builder().success(true).message("auth account success").data(Map.of("access_token" , this.jwtUtils.JwtGenerator(user, secretKey , expirationTime),
+        "updateProfile" , user.getUpdateProfile())).build();
   }
-
 
 }

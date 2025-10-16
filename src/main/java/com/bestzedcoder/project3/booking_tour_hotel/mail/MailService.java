@@ -24,6 +24,7 @@ public class MailService implements IEmailService {
     Context context = new Context();
     context.setVariable("fullName", mailDetails.getUsername());
     context.setVariable("verificationUrl", verificationUrl);
+    context.setVariable("code" , mailDetails.getToken());
 
     // Render HTML từ template
     String htmlContent = templateEngine.process("auth_account", context);

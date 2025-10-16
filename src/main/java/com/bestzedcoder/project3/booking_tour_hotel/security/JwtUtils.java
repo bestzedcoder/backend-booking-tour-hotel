@@ -1,6 +1,7 @@
 package com.bestzedcoder.project3.booking_tour_hotel.security;
 
 import com.bestzedcoder.project3.booking_tour_hotel.exception.UnauthorizedException;
+import com.bestzedcoder.project3.booking_tour_hotel.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -9,7 +10,6 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
@@ -18,13 +18,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class JwtUtils {
-  public String JwtGenerator(String username, Collection<? extends GrantedAuthority> authorities,String secret,String expiration) {
+  public String JwtGenerator(User user,String secret,String expiration) {
     Instant now = Instant.now();
     Date issuedAt = Date.from(now);
     Date expiryDate = Date.from(now.plusMillis(Long.parseLong(expiration)));
     return Jwts.builder().setIssuer("Security").setSubject("JWT Token")
-        .claim("username" , username)
-        .claim("authorities" , authorities.stream().map(GrantedAuthority::getAuthority).collect(
+        .claim("userId",user.getId())
+        .claim("username" , user.getUsername())
+        .claim("authorities" , user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(
             Collectors.joining(",")))
         .setIssuedAt(issuedAt)
         .setExpiration(expiryDate)

@@ -1,6 +1,7 @@
 package com.bestzedcoder.project3.booking_tour_hotel.model;
 
 import com.bestzedcoder.project3.booking_tour_hotel.common.BaseEntity;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -8,6 +9,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.Collection;
 import java.util.HashSet;
@@ -33,23 +35,24 @@ import org.springframework.security.core.userdetails.UserDetails;
 @EntityListeners(AuditingEntityListener.class)
 public class User extends BaseEntity implements UserDetails  {
 
-  @Column(unique = true)
+  @Column(unique = true, nullable = false)
   private String username;
 
+  @Column(nullable = false)
   private String password;
 
-  private String fullName;
-
-  @Column(unique = true)
+  @Column(unique = true, nullable = false)
   private String email;
 
-  private String address;
+  @Column(nullable = false)
+  private boolean updateProfile;
 
-  private String phone;
-
+  @Column(nullable = false)
   private boolean enabled;
 
-  private boolean accountLocked;
+  @Column(nullable = false)
+  private boolean accountLocked = false;
+
 
   @ManyToMany(fetch = FetchType.EAGER)
   @JoinTable(
@@ -59,10 +62,18 @@ public class User extends BaseEntity implements UserDetails  {
   )
   private Set<Role> roles = new HashSet<>();
 
+  @OneToOne(mappedBy = "user" , cascade = CascadeType.ALL)
+  private Profile profile;
+
+
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
     return this.roles.stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(
         Collectors.toList());
+  }
+
+  public boolean getUpdateProfile() {
+    return this.updateProfile;
   }
 
   @Override
@@ -82,7 +93,7 @@ public class User extends BaseEntity implements UserDetails  {
 
   @Override
   public boolean isAccountNonLocked() {
-    return !this.accountLocked;
+    return this.accountLocked;
   }
 
   @Override
