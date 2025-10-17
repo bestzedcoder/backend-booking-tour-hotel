@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @RestController
@@ -18,9 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProfileController {
   private final IProfileService profileSerice;
   @PreAuthorize("hasRole('ROLE_CUSTOMER')")
-  @PutMapping("update/{id}")
-  public ResponseEntity<ApiResponse<?>> update(@PathVariable("id") Long id,@RequestBody UserUpdatingProfile userUpdatingProfile) {
-    ApiResponse<?> response = this.profileSerice.update(id,userUpdatingProfile);
+  @PutMapping(value = "/update/{id}" , consumes = {"multipart/form-data"})
+  public ResponseEntity<ApiResponse<?>> update(@PathVariable("id") Long id,@RequestPart("data") UserUpdatingProfile userUpdatingProfile, @RequestPart(value = "image" , required = false) MultipartFile image) {
+    ApiResponse<?> response = this.profileSerice.update(id,userUpdatingProfile,image);
     return ResponseEntity.ok(response);
   }
 }

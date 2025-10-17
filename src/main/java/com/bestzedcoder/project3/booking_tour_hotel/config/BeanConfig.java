@@ -1,6 +1,7 @@
 package com.bestzedcoder.project3.booking_tour_hotel.config;
 
 import com.bestzedcoder.project3.booking_tour_hotel.security.AuditorAwareImpl;
+import org.apache.tika.Tika;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
@@ -20,4 +21,8 @@ public class BeanConfig {
     return new AuditorAwareImpl();
   }
 
+  @Bean
+  public Tika tika() {
+    return new Tika();
+  }
 }

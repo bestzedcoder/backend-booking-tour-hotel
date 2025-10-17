@@ -36,4 +36,9 @@ public class GlobalHandlingException {
   public ResponseEntity<ApiResponse<?>> handleNullPointerException(NullPointerException e) {
     return ResponseEntity.badRequest().body(new ApiResponse<>(false, "null pointer exception", null));
   }
+
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<ApiResponse<?>> handleIllegalArgumentException(IllegalArgumentException e) {
+    return ResponseEntity.badRequest().body(new ApiResponse<>(false, e.getMessage(), null));
+  }
 }
