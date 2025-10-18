@@ -3,6 +3,10 @@ spring:
     name: Booking Tour & Hotel
   profiles:
     active: dev
+  data:
+    redis:
+      port: 6379
+      host: localhost
   security:
     user:
       name: username

@@ -1,6 +1,7 @@
 package com.bestzedcoder.project3.booking_tour_hotel.security;
 
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
+import com.bestzedcoder.project3.booking_tour_hotel.redis.ITokenRedisService;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -24,6 +25,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtValidationFilter extends OncePerRequestFilter {
   private final UserRepository userRepository;
   private final JwtUtils jwtUtils;
+  private final ITokenRedisService tokenRedisService;
   @Value("${application.security.secretKey}")
   private String secretKey;
   @Override
@@ -35,6 +37,9 @@ public class JwtValidationFilter extends OncePerRequestFilter {
       throw new BadCredentialsException("Required JWT header is missing");
     }
     String token = jwt.replace("Bearer ", "");
+    if(!this.tokenRedisService.validateBlackListToken(token)) {
+      throw new BadCredentialsException("Token has been revoked. Please login again.");
+    }
     Claims claims = this.jwtUtils.extractClaims(token , secretKey);
     String username = claims.get("username", String.class);
     String authorities = claims.get("authorities", String.class);
