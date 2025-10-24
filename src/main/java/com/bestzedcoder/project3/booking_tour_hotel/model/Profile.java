@@ -3,6 +3,7 @@ package com.bestzedcoder.project3.booking_tour_hotel.model;
 import com.bestzedcoder.project3.booking_tour_hotel.common.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
@@ -25,7 +26,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "_profile")
 @EntityListeners(AuditingEntityListener.class)
 public class Profile extends BaseEntity {
+  @Column(nullable = false)
   private String fullName;
+  @Column(unique = true)
   private String phoneNumber;
   private String address;
 

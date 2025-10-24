@@ -1,6 +1,7 @@
 package com.bestzedcoder.project3.booking_tour_hotel.dto.response;
 
 import com.bestzedcoder.project3.booking_tour_hotel.enums.ErrorCode;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
   private boolean success;
   private String message;

@@ -59,10 +59,9 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
-  @PostMapping("logout")
-  public ResponseEntity<ApiResponse<?>> logout(@RequestBody Map<String , String>  data ) {
-    String access_token = data.get("access_token");
-    ApiResponse<?> response = this.authService.logout(access_token);
+  @GetMapping("logout")
+  public ResponseEntity<ApiResponse<?>> logout() {
+    ApiResponse<?> response = this.authService.logout();
     return ResponseEntity.ok(response);
   }
 }

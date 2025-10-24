@@ -10,5 +10,5 @@ public interface IAuthService {
   ApiResponse<?> register(UserSignupRequest userSignupRequest);
   ApiResponse<?> verify(String code,String email);
   ApiResponse<?> refresh(RefreshTokenReqest refreshTokenReqest);
-  ApiResponse<?> logout(String accessToken);
+  ApiResponse<?> logout();
 }

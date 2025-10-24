@@ -12,7 +12,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.mail.MailDetails;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Profile;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Role;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
-import com.bestzedcoder.project3.booking_tour_hotel.redis.ITokenRedisService;
+import com.bestzedcoder.project3.booking_tour_hotel.redis.IRedisService;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.ProfileRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.RoleRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
@@ -21,6 +21,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.service.IAuthService;
 import com.bestzedcoder.project3.booking_tour_hotel.service.ITokenService;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -41,7 +42,7 @@ public class AuthService implements IAuthService {
   private final ITokenService tokenService;
   private final RoleRepository roleRepository;
   private final ProfileRepository profileRepository;
-  private final ITokenRedisService tokenRedisService;
+  private final IRedisService redisService;
 
   @Value("${application.security.secretKey}")
   private String secretKey;
@@ -60,8 +61,9 @@ public class AuthService implements IAuthService {
     User user = (User) authenticated.getPrincipal();
     String access_token = this.jwtUtils.JwtGenerator(user, secretKey , expirationTimeAccess);
     String refresh_token = this.jwtUtils.JwtGenerator(user, secretKey , expirationTimeRefresh);
-    this.tokenRedisService.saveToken(user.getId() , refresh_token , expirationTimeRefresh);
-    LoginResponse loginResponse = new LoginResponse(access_token, refresh_token ,  user.getUpdateProfile());
+    this.redisService.saveKeyAndValue("accessToken:"+user.getId() , access_token , expirationTimeAccess , TimeUnit.SECONDS);
+    this.redisService.saveKeyAndValue("refreshToken:"+user.getId() , refresh_token , expirationTimeRefresh , TimeUnit.SECONDS);
+    LoginResponse loginResponse = new LoginResponse(user.getId(),user.getUsername() , user.getProfile() , access_token, refresh_token ,  user.getUpdateProfile());
     return ApiResponse.<LoginResponse>builder().success(true).data(loginResponse).message("login success").build();
   }
 
@@ -81,18 +83,16 @@ public class AuthService implements IAuthService {
 
     Role role = this.roleRepository.findByName("ROLE_CUSTOMER");
     Profile profile = Profile.builder().fullName("New Customer").build();
-    profile = this.profileRepository.save(profile);
     User newUser = User.builder().email(email).username(username).password(this.passwordEncoder.encode(password)).profile(profile).enabled(false).updateProfile(false).roles(
         Set.of(role)).build();
     profile.setUser(newUser);
     this.userRepository.save(newUser);
     String token = this.tokenService.generateAndSaveToken(newUser);
-    MailDetails mailDetails = MailDetails.builder().to(newUser.getEmail()).token(token).username(newUser.getProfile().getFullName()).build();
+    MailDetails mailDetails = MailDetails.builder().to(newUser.getEmail()).token(token).username(newUser.getUsername()).build();
     this.emailService.sendVerificationEmail(mailDetails);
     return ApiResponse.builder()
         .success(true)
         .message("Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản trước khi đăng nhập.")
-        .data(null)
         .build();
   }
 
@@ -100,24 +100,20 @@ public class AuthService implements IAuthService {
   public ApiResponse<?> verify(String code, String email) {
     boolean checkToken = this.tokenService.check(code);
     if(!checkToken) {
-      throw new UnauthorizedException("Token invalid");
+      throw new UnauthorizedException("Token hết hạn vui lòng liên hệ với nhà quản trị");
     }
     User user = this.userRepository.findByEmail(email);
     user.setEnabled(true);
     user.setUpdateProfile(false);
     this.userRepository.save(user);
-    String access_token = this.jwtUtils.JwtGenerator(user, secretKey , expirationTimeAccess);
-    String refresh_token = this.jwtUtils.JwtGenerator(user, secretKey , expirationTimeRefresh);
-    this.tokenRedisService.saveToken(user.getId() , access_token , expirationTimeRefresh);
-    return ApiResponse.builder().success(true).message("auth account success").data(Map.of("access_token" , access_token, "refresh_token" , refresh_token,
-        "updateProfile" , user.getUpdateProfile())).build();
+    return ApiResponse.builder().success(true).message("Verify success.").build();
   }
 
   @Override
   public ApiResponse<?> refresh(RefreshTokenReqest refreshTokenReqest) {
     Long userId = refreshTokenReqest.getUserId();
     String refreshToken = refreshTokenReqest.getRefreshToken();
-    String refreshRedis = this.tokenRedisService.getRefreshToken(userId);
+    String refreshRedis = (String) this.redisService.getValue("refreshToken:"+userId);
     if(refreshRedis == null) throw new UnauthorizedException("Refresh token expired");
     else if(!refreshRedis.equals(refreshToken)) {
       throw new UnauthorizedException("Refresh token invalid");
@@ -126,15 +122,18 @@ public class AuthService implements IAuthService {
       throw new BadRequestException("User not found");
     });
     String accessTokenNew = this.jwtUtils.JwtGenerator(user, secretKey , expirationTimeAccess);
+    this.redisService.saveKeyAndValue("accessToken:"+user.getId() , accessTokenNew , expirationTimeAccess , TimeUnit.SECONDS);
     return ApiResponse.builder().success(true).message("access_token new").data(Map.of("access_token" , accessTokenNew)).build();
   }
 
   @Override
-  public ApiResponse<?> logout(String accessToken) {
+  public ApiResponse<?> logout() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     User user = (User) authentication.getPrincipal();
-    this.tokenRedisService.deleteToken(user.getId());
-    this.tokenRedisService.saveBackListToken(accessToken, expirationTimeAccess);
+    String accessToken = (String) this.redisService.getValue("accessToken:"+user.getId());
+    this.redisService.saveKeyAndValue("BlackList:"+accessToken+user.getId() , accessToken , expirationTimeAccess , TimeUnit.SECONDS);
+    this.redisService.deleteKey("accessToken:"+user.getId());
+    this.redisService.deleteKey("refreshToken:"+user.getId());
     return ApiResponse.builder().success(true).message("logout success").build();
   }
 

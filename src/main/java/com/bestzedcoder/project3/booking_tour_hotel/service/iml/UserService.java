@@ -69,10 +69,6 @@ public class UserService implements IUserService {
         .data(response).build();
   }
 
-  private String hashPassword(String password) {
-    return passwordEncoder.encode(password);
-  }
-
   @Override
   public ApiResponse<?> getUserById(Long id) throws BadRequestException {
     User user = this.userRepository.findById(id).orElseThrow(() -> {

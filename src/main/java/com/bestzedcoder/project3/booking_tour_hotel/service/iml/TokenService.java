@@ -33,10 +33,7 @@ public class TokenService implements ITokenService {
     });
     System.out.println("time now: " + LocalDateTime.now());
     System.out.println("time expires: " + t.getExpiresAt());
-    if (LocalDateTime.now().isAfter(t.getExpiresAt())) {
-      return false;
-    }
-    return true;
+    return !LocalDateTime.now().isAfter(t.getExpiresAt());
   }
 
   private String generateActivationCode(int length) {

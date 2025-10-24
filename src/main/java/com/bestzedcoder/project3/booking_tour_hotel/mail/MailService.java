@@ -18,16 +18,13 @@ public class MailService implements IEmailService {
 
   @Async
   public void sendVerificationEmail(MailDetails mailDetails) {
-    String verificationUrl = "http://localhost:8080/api/auth/verify?token=" + mailDetails.getToken();
-
     // Tạo context Thymeleaf
     Context context = new Context();
     context.setVariable("fullName", mailDetails.getUsername());
-    context.setVariable("verificationUrl", verificationUrl);
-    context.setVariable("code" , mailDetails.getToken());
+    context.setVariable("code", mailDetails.getToken());
 
     // Render HTML từ template
-    String htmlContent = templateEngine.process("auth_account", context);
+    String htmlContent = templateEngine.process("verify_account", context);
 
     try {
       MimeMessage message = mailSender.createMimeMessage();
@@ -41,5 +38,6 @@ public class MailService implements IEmailService {
     } catch (MessagingException e) {
       throw new RuntimeException("Gửi email thất bại", e);
     }
+
   }
 }

@@ -24,10 +24,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("users")
 @RequiredArgsConstructor
 @Slf4j
+@PreAuthorize("hasRole('ADMIN')")
 public class UserController {
   private final IUserService userService;
 
-  @PreAuthorize("hasRole('ADMIN')")
   @PostMapping("/create")
   public ResponseEntity<ApiResponse<UserCreatingResponse>> create(@RequestBody @Valid
       UserCreatingRequest request) throws BadRequestException {
@@ -36,7 +36,6 @@ public class UserController {
       return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
-  @PreAuthorize("hasRole('ADMIN')")
   @GetMapping("/{id}")
   public ResponseEntity<ApiResponse<?>> findById(@PathVariable("id") Long id) throws BadRequestException {
     log.info("Find user by id: {}", id);

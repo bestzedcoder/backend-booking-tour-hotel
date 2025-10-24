@@ -1,7 +1,7 @@
 package com.bestzedcoder.project3.booking_tour_hotel.security;
 
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
-import com.bestzedcoder.project3.booking_tour_hotel.redis.ITokenRedisService;
+import com.bestzedcoder.project3.booking_tour_hotel.redis.IRedisService;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -25,7 +25,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtValidationFilter extends OncePerRequestFilter {
   private final UserRepository userRepository;
   private final JwtUtils jwtUtils;
-  private final ITokenRedisService tokenRedisService;
+  private final IRedisService redisService;
   @Value("${application.security.secretKey}")
   private String secretKey;
   @Override
@@ -37,12 +37,14 @@ public class JwtValidationFilter extends OncePerRequestFilter {
       throw new BadCredentialsException("Required JWT header is missing");
     }
     String token = jwt.replace("Bearer ", "");
-    if(!this.tokenRedisService.validateBlackListToken(token)) {
-      throw new BadCredentialsException("Token has been revoked. Please login again.");
-    }
     Claims claims = this.jwtUtils.extractClaims(token , secretKey);
+    Long userId = claims.get("userId", Long.class);
     String username = claims.get("username", String.class);
     String authorities = claims.get("authorities", String.class);
+    String tokenBlackList = (String) this.redisService.getValue("BlackList:"+token+userId);
+    if(tokenBlackList != null && tokenBlackList.equals(token)) {
+      throw new BadCredentialsException("Token has been revoked. Please login again.");
+    }
     User user = this.userRepository.findByUsername(username);
     Authentication authentication = new UsernamePasswordAuthenticationToken(user ,null ,
         AuthorityUtils.commaSeparatedStringToAuthorityList(authorities));
@@ -52,6 +54,6 @@ public class JwtValidationFilter extends OncePerRequestFilter {
 
   protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
     String requestURI = request.getRequestURI();
-    return requestURI.contains("/auth/");
+    return requestURI.contains("/register") || requestURI.contains("/login") || requestURI.contains("/verify") || requestURI.contains("/refresh");
   }
 }

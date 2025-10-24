@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>Xác thực tài khoản</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background-color: #007bff;
+      color: #ffffff;
+      padding: 20px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .content {
+      padding: 30px;
+      text-align: center;
+      color: #333333;
+    }
+
+    .token-box {
+      font-size: 28px;
+      letter-spacing: 4px;
+      background-color: #f1f1f1;
+      display: inline-block;
+      padding: 15px 25px;
+      border-radius: 10px;
+      color: #222;
+      margin-top: 25px;
+      font-weight: bold;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+    }
+
+    .footer {
+      background-color: #fafafa;
+      text-align: center;
+      padding: 15px;
+      font-size: 13px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">Mã xác thực tài khoản</div>
+  <div class="content">
+    <p>Xin chào <strong th:text="${fullName}">Người dùng</strong>,</p>
+    <p>Dưới đây là mã xác thực tài khoản của bạn:</p>
+
+    <div class="token-box" th:text="${code}">12345678</div>
+
+    <p style="margin-top: 25px;">
+      Vui lòng nhập mã này trong ứng dụng để hoàn tất quá trình xác thực.
+    </p>
+  </div>
+  <div class="footer">
+    Nếu bạn không yêu cầu tạo tài khoản, hãy bỏ qua email này.<br>
+    © 2025 Your Company.
+  </div>
+</div>
+</body>
+</html>
