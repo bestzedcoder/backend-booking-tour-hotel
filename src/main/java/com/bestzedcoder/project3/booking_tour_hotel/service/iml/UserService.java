@@ -3,9 +3,9 @@ package com.bestzedcoder.project3.booking_tour_hotel.service.iml;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserCreatingRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserUpdatingRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
-import com.bestzedcoder.project3.booking_tour_hotel.dto.response.UserCreatingResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.ErrorCode;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestException;
+import com.bestzedcoder.project3.booking_tour_hotel.mapper.UserMapper;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Profile;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Role;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
@@ -28,7 +28,7 @@ public class UserService implements IUserService {
   private final ProfileRepository profileRepository;
 
   @Override
-  public ApiResponse<UserCreatingResponse> create(UserCreatingRequest request)
+  public ApiResponse<?> create(UserCreatingRequest request)
       throws BadRequestException {
     String username = request.getUsername();
     String password = request.getPassword();
@@ -56,17 +56,10 @@ public class UserService implements IUserService {
         .build();
     profile.setUser(newUser);
     this.userRepository.save(newUser);
-    var response = new UserCreatingResponse(
-        newUser.getUsername(),
-        newUser.getProfile().getFullName(),
-        newUser.getPassword(),
-        newUser.getEmail(),
-        newUser.getProfile().getPhoneNumber()
-    );
-    return ApiResponse.<UserCreatingResponse>builder()
+    return ApiResponse.builder()
         .success(true)
         .message("User created")
-        .data(response).build();
+        .data(UserMapper.toUserResponse(newUser)).build();
   }
 
   @Override
@@ -74,7 +67,7 @@ public class UserService implements IUserService {
     User user = this.userRepository.findById(id).orElseThrow(() -> {
       throw new BadRequestException("User not found with id: " + id);
     });
-    return ApiResponse.builder().success(true).data(user).message("success").build();
+    return ApiResponse.builder().success(true).data(UserMapper.toUserResponse(user)).message("success").build();
   }
 
   @Override
@@ -106,6 +99,12 @@ public class UserService implements IUserService {
     user.setUpdateProfile(true);
     profile.setUser(user);
     this.userRepository.save(user);
-    return ApiResponse.builder().success(true).data(user).build();
+    return ApiResponse.builder().success(true).message("Updated user success.").build();
+  }
+
+  @Override
+  public ApiResponse<?> getAllUsers() {
+    var users = this.userRepository.findAll();
+    return ApiResponse.builder().success(true).data(users.stream().map(UserMapper::toUserResponse).toList()).build();
   }
 }

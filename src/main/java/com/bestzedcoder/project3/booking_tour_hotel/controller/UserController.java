@@ -3,7 +3,6 @@ package com.bestzedcoder.project3.booking_tour_hotel.controller;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserCreatingRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserUpdatingRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
-import com.bestzedcoder.project3.booking_tour_hotel.dto.response.UserCreatingResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,10 +28,10 @@ public class UserController {
   private final IUserService userService;
 
   @PostMapping("/create")
-  public ResponseEntity<ApiResponse<UserCreatingResponse>> create(@RequestBody @Valid
+  public ResponseEntity<ApiResponse<?>> create(@RequestBody @Valid
       UserCreatingRequest request) throws BadRequestException {
       log.info("Creating user: {}", request);
-      ApiResponse<UserCreatingResponse> response = this.userService.create(request);
+      ApiResponse<?> response = this.userService.create(request);
       return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
@@ -40,6 +39,12 @@ public class UserController {
   public ResponseEntity<ApiResponse<?>> findById(@PathVariable("id") Long id) throws BadRequestException {
     log.info("Find user by id: {}", id);
     ApiResponse<?> response = this.userService.getUserById(id);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
+
+  @GetMapping
+  public ResponseEntity<ApiResponse<?>> getAllUsers() {
+    ApiResponse<?> response = this.userService.getAllUsers();
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 

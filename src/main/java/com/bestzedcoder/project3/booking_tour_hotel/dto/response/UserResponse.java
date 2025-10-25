@@ -8,10 +8,12 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserCreatingResponse {
+public class UserResponse {
   private String username;
   private String fullName;
-  private String password;
+  private String address;
   private String email;
   private String phone;
+  private String[] roles;
+  private String urlImage;
 }

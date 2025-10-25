@@ -2,6 +2,7 @@ package com.bestzedcoder.project3.booking_tour_hotel.service.iml;
 
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.HotelCreatingRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
+import com.bestzedcoder.project3.booking_tour_hotel.mapper.HotelMapper;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Hotel;
 import com.bestzedcoder.project3.booking_tour_hotel.model.ImageHotel;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
@@ -56,6 +57,7 @@ public class HotelService implements IHotelService {
     if(hotels.isEmpty()) {
       return ApiResponse.builder().success(true).message("Không tìm được khách sạn sở hữu bởi user có id là: " + ownerId).build();
     }
-    return ApiResponse.builder().success(true).message("Success").data(hotels).build();
+    return ApiResponse.builder().success(true).message("Success").data(hotels.stream().map(
+        HotelMapper::hotelToHotelResponse).toList()).build();
   }
 }
