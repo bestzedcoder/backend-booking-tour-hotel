@@ -1,6 +1,7 @@
 package com.bestzedcoder.project3.booking_tour_hotel.model;
 
 import com.bestzedcoder.project3.booking_tour_hotel.common.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,10 +10,13 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -32,7 +36,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 @SuperBuilder
 @Entity
 @Table(name = "_user")
-@EntityListeners(AuditingEntityListener.class)
 public class User extends BaseEntity implements UserDetails  {
 
   @Column(unique = true, nullable = false)
@@ -64,6 +67,10 @@ public class User extends BaseEntity implements UserDetails  {
 
   @OneToOne(mappedBy = "user" , cascade = CascadeType.ALL)
   private Profile profile;
+
+  @OneToMany(mappedBy = "owner" , fetch = FetchType.EAGER , cascade = CascadeType.ALL , orphanRemoval = true)
+  @JsonIgnore
+  private List<Hotel> hotels = new ArrayList<>();
 
 
   @Override

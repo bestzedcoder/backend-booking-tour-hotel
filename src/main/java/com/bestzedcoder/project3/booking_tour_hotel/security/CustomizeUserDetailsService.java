@@ -17,6 +17,6 @@ public class CustomizeUserDetailsService implements UserDetailsService {
 
   @Override
   public UserDetails loadUserByUsername(String username) throws UnauthorizedException {
-    return Optional.ofNullable(this.userRepository.findByUsername(username)).orElseThrow(() -> new UnauthorizedException("Username not found"));
+    return Optional.ofNullable(this.userRepository.findByUsername(username)).orElseThrow(() -> new UnauthorizedException("Username or Password incorrect"));
   }
 }

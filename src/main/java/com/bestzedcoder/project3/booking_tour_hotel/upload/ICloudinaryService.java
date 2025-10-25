@@ -1,4 +1,4 @@
-package com.bestzedcoder.project3.booking_tour_hotel.file;
+package com.bestzedcoder.project3.booking_tour_hotel.upload;
 
 import java.util.Map;
 import org.springframework.web.multipart.MultipartFile;

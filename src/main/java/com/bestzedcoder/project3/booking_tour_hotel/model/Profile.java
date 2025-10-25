@@ -34,7 +34,7 @@ public class Profile extends BaseEntity {
 
   @OneToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "image_id")
-  private Image image;
+  private ImageProfile image;
 
   @OneToOne
   @JsonIgnore

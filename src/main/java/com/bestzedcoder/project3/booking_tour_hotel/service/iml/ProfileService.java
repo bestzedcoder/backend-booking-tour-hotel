@@ -3,8 +3,8 @@ package com.bestzedcoder.project3.booking_tour_hotel.service.iml;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserUpdatingProfile;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestException;
-import com.bestzedcoder.project3.booking_tour_hotel.file.ICloudinaryService;
-import com.bestzedcoder.project3.booking_tour_hotel.model.Image;
+import com.bestzedcoder.project3.booking_tour_hotel.upload.ICloudinaryService;
+import com.bestzedcoder.project3.booking_tour_hotel.model.ImageProfile;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Profile;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.ProfileRepository;
@@ -35,7 +35,7 @@ public class ProfileService implements IProfileService {
         this.cloudinaryService.deleteImage(profile.getImage().getPublicId());
       }
       Map<String,String> result = this.cloudinaryService.validationAndUpload(multipartFile , "profile");
-      Image image = Image.builder().url(result.get("url")).publicId(result.get("public_id")).profile(profile).build();
+      ImageProfile image = ImageProfile.builder().url(result.get("url")).publicId(result.get("public_id")).profile(profile).build();
       profile.setImage(image);
     }
     User user = this.userRepository.findById(id).orElseThrow(() -> {throw new BadRequestException("User not found");});

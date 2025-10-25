@@ -1,4 +1,4 @@
-package com.bestzedcoder.project3.booking_tour_hotel.file;
+package com.bestzedcoder.project3.booking_tour_hotel.upload;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;

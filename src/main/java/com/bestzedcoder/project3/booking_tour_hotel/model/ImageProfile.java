@@ -19,8 +19,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Builder
-@Table(name = "_image")
-public class Image {
+@Table(name = "_image_profile")
+public class ImageProfile {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -31,4 +31,6 @@ public class Image {
   @OneToOne(mappedBy = "image")
   @JsonIgnore
   private Profile profile;
+
+
 }
