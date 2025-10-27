@@ -1,9 +1,11 @@
 package com.bestzedcoder.project3.booking_tour_hotel.mapper;
 
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.HotelResponse;
+import com.bestzedcoder.project3.booking_tour_hotel.dto.response.HotelSearchResponse;
+import com.bestzedcoder.project3.booking_tour_hotel.dto.response.RoomResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Hotel;
 import com.bestzedcoder.project3.booking_tour_hotel.model.ImageHotel;
-import java.util.stream.Collectors;
+import com.bestzedcoder.project3.booking_tour_hotel.model.Room;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,6 +19,31 @@ public class HotelMapper {
     hotelResponse.setHotelPhone(hotel.getOwner().getProfile().getPhoneNumber());
     hotelResponse.setHotelImages(
         hotel.getImages().stream().map(ImageHotel::getUrl).toArray(String[]::new));
+    hotelResponse.setRooms(hotel.getRooms().stream().map(HotelMapper::roomToRoomResponse).toArray(RoomResponse[]::new));
     return hotelResponse;
+  }
+
+  public static HotelSearchResponse hotelToHotelSearchResponse(Hotel hotel) {
+    HotelSearchResponse hotelSearchResponse = new HotelSearchResponse();
+    hotelSearchResponse.setHotelName(hotel.getHotel_name());
+    hotelSearchResponse.setCity(hotel.getHotel_city());
+    hotelSearchResponse.setAddress(hotel.getHotel_address());
+    hotelSearchResponse.setDescription(hotel.getHotel_description());
+    hotelSearchResponse.setStar(hotel.getHotel_star());
+    if((hotel.getImages() != null) && (!hotel.getImages().isEmpty())) {
+        String urlImageMain = hotel.getImages().stream().findFirst().get().getUrl();
+        hotelSearchResponse.setImageUrl(urlImageMain);
+    }
+    return hotelSearchResponse;
+  }
+
+  private static RoomResponse roomToRoomResponse(Room room) {
+    RoomResponse roomResponse = new RoomResponse();
+    roomResponse.setRoomName(room.getRoomName());
+    roomResponse.setRoomType(room.getType());
+    roomResponse.setPricePerDay(room.getPricePerDay());
+    roomResponse.setPricePerHour(room.getPricePerHour());
+    roomResponse.setStatus(room.getStatus());
+    return roomResponse;
   }
 }

@@ -9,6 +9,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -50,6 +51,6 @@ public class Hotel extends BaseEntity {
   @JoinColumn(name = "owner_id")
   private User owner;
 
-  @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "hotel" , fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Room> rooms = new ArrayList<>();
 }

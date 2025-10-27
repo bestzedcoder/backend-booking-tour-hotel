@@ -16,4 +16,5 @@ public class HotelResponse {
   private String hotelAddress;
   private String hotelPhone;
   private String[] hotelImages;
+  private RoomResponse[] rooms;
 }

@@ -3,6 +3,7 @@ package com.bestzedcoder.project3.booking_tour_hotel.security;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
 import com.bestzedcoder.project3.booking_tour_hotel.redis.IRedisService;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -41,7 +42,7 @@ public class JwtValidationFilter extends OncePerRequestFilter {
     Long userId = claims.get("userId", Long.class);
     String username = claims.get("username", String.class);
     String authorities = claims.get("authorities", String.class);
-    String tokenBlackList = (String) this.redisService.getValue("BlackList:"+token+userId);
+    String tokenBlackList = this.redisService.getValue("BlackList:"+token+userId, new TypeReference<String>() {});
     if(tokenBlackList != null && tokenBlackList.equals(token)) {
       throw new BadCredentialsException("Token has been revoked. Please login again.");
     }

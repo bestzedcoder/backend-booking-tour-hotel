@@ -19,6 +19,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.security.JwtUtils;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IAuthService;
 import com.bestzedcoder.project3.booking_tour_hotel.service.ITokenService;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -113,14 +114,13 @@ public class AuthService implements IAuthService {
   public ApiResponse<?> refresh(RefreshTokenReqest refreshTokenReqest) {
     Long userId = refreshTokenReqest.getUserId();
     String refreshToken = refreshTokenReqest.getRefreshToken();
-    String refreshRedis = (String) this.redisService.getValue("refreshToken:"+userId);
+    String refreshRedis = this.redisService.getValue("refreshToken:"+userId,new TypeReference<String>() {});
     if(refreshRedis == null) throw new UnauthorizedException("Refresh token expired");
     else if(!refreshRedis.equals(refreshToken)) {
       throw new UnauthorizedException("Refresh token invalid");
     }
-    User user = this.userRepository.findById(userId).orElseThrow(() -> {
-      throw new BadRequestException("User not found");
-    });
+    User user = this.userRepository.findById(userId).orElseThrow(() -> new BadRequestException(
+        "User not found"));
     String accessTokenNew = this.jwtUtils.JwtGenerator(user, secretKey , expirationTimeAccess);
     this.redisService.saveKeyAndValue("accessToken:"+user.getId() , accessTokenNew , expirationTimeAccess , TimeUnit.SECONDS);
     return ApiResponse.builder().success(true).message("access_token new").data(Map.of("access_token" , accessTokenNew)).build();
@@ -130,7 +130,7 @@ public class AuthService implements IAuthService {
   public ApiResponse<?> logout() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     User user = (User) authentication.getPrincipal();
-    String accessToken = (String) this.redisService.getValue("accessToken:"+user.getId());
+    String accessToken = (String) this.redisService.getValue("accessToken:"+user.getId(),new TypeReference<String>() {});
     this.redisService.saveKeyAndValue("BlackList:"+accessToken+user.getId() , accessToken , expirationTimeAccess , TimeUnit.SECONDS);
     this.redisService.deleteKey("accessToken:"+user.getId());
     this.redisService.deleteKey("refreshToken:"+user.getId());

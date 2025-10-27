@@ -1,6 +1,7 @@
 package com.bestzedcoder.project3.booking_tour_hotel.model;
 
 import com.bestzedcoder.project3.booking_tour_hotel.common.BaseEntity;
+import com.bestzedcoder.project3.booking_tour_hotel.event.UserEvent;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -24,7 +25,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -36,6 +36,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @SuperBuilder
 @Entity
 @Table(name = "_user")
+@EntityListeners(UserEvent.class)
 public class User extends BaseEntity implements UserDetails  {
 
   @Column(unique = true, nullable = false)

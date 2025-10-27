@@ -3,18 +3,23 @@ package com.bestzedcoder.project3.booking_tour_hotel.service.iml;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserCreatingRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserUpdatingRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
+import com.bestzedcoder.project3.booking_tour_hotel.dto.response.UserResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.ErrorCode;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestException;
 import com.bestzedcoder.project3.booking_tour_hotel.mapper.UserMapper;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Profile;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Role;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
+import com.bestzedcoder.project3.booking_tour_hotel.redis.IRedisService;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.ProfileRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.RoleRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IUserService;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,6 +31,7 @@ public class UserService implements IUserService {
   private final PasswordEncoder passwordEncoder;
   private final RoleRepository roleRepository;
   private final ProfileRepository profileRepository;
+  private final IRedisService redisService;
 
   @Override
   public ApiResponse<?> create(UserCreatingRequest request)
@@ -64,20 +70,20 @@ public class UserService implements IUserService {
 
   @Override
   public ApiResponse<?> getUserById(Long id) throws BadRequestException {
-    User user = this.userRepository.findById(id).orElseThrow(() -> {
-      throw new BadRequestException("User not found with id: " + id);
-    });
+    User user = this.userRepository.findById(id).orElseThrow(() -> new BadRequestException(
+        "User not found with id: " + id));
     return ApiResponse.builder().success(true).data(UserMapper.toUserResponse(user)).message("success").build();
   }
 
   @Override
   public ApiResponse<?> updateUserById(Long id, UserUpdatingRequest request)
       throws BadRequestException {
-    User user = this.userRepository.findById(id).orElseThrow(() -> {throw new BadRequestException("User not found with id: " + id);});
+    User user = this.userRepository.findById(id).orElseThrow(() -> new BadRequestException(
+        "User not found with id: " + id));
     String fullName = request.getFullName();
     String phone = request.getPhone();
     String []roles = request.getRoles();
-    if (roles.length == 0) {
+    if (roles == null || roles.length == 0) {
       roles = new String[]{"ROLE_CUSTOMER"};
     }
     HashSet<Role> roleSet = new HashSet<>();
@@ -88,9 +94,8 @@ public class UserService implements IUserService {
       }
       roleSet.add(roleEnum);
     }
-    Profile profile = this.profileRepository.findProfileByUserId(user.getId()).orElseThrow(() -> {
-      throw new BadRequestException("Profile not found with user id: " + user.getId());
-    });
+    Profile profile = this.profileRepository.findProfileByUserId(user.getId()).orElseThrow(() -> new BadRequestException(
+        "Profile not found with user id: " + user.getId()));
     profile.setFullName(fullName);
     profile.setPhoneNumber(phone);
     profile.setAddress(request.getAddress());
@@ -104,7 +109,12 @@ public class UserService implements IUserService {
 
   @Override
   public ApiResponse<?> getAllUsers() {
-    var users = this.userRepository.findAll();
-    return ApiResponse.builder().success(true).data(users.stream().map(UserMapper::toUserResponse).toList()).build();
+    List<UserResponse> cacheUsers = this.redisService.getValue("getAllUsers" , new TypeReference<List<UserResponse>>() {});
+    if(cacheUsers != null) {
+      return ApiResponse.builder().success(true).message("Lấy thành công danh sách users").data(cacheUsers).build();
+    }
+    List<UserResponse> users = this.userRepository.findAll().stream().map(UserMapper::toUserResponse).toList();
+    this.redisService.saveKeyAndValue("getAllUsers" , users , "10" , TimeUnit.MINUTES);
+    return ApiResponse.builder().success(true).data(users).build();
   }
 }
