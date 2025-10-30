@@ -18,12 +18,10 @@ public class MailService implements IEmailService {
 
   @Async
   public void sendVerificationEmail(MailDetails mailDetails) {
-    // Tạo context Thymeleaf
     Context context = new Context();
     context.setVariable("fullName", mailDetails.getUsername());
     context.setVariable("code", mailDetails.getToken());
 
-    // Render HTML từ template
     String htmlContent = templateEngine.process("verify_account", context);
 
     try {
@@ -32,8 +30,30 @@ public class MailService implements IEmailService {
 
       helper.setTo(mailDetails.getTo());
       helper.setSubject("Xác thực tài khoản của bạn");
-      helper.setText(htmlContent, true); // true = nội dung HTML
+      helper.setText(htmlContent, true);
 
+      mailSender.send(message);
+    } catch (MessagingException e) {
+      throw new RuntimeException("Gửi email thất bại", e);
+    }
+
+  }
+
+  @Override
+  public void sendInfoUserDetails(MailDetails mailDetails) {
+    Context context = new Context();
+    context.setVariable("fullName", mailDetails.getFullName());
+    context.setVariable("username", mailDetails.getUsername());
+    context.setVariable("password", mailDetails.getRawPassword());
+
+    String htmlContent = templateEngine.process("account_created", context);
+
+    try {
+      MimeMessage message = mailSender.createMimeMessage();
+      MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+      helper.setTo(mailDetails.getTo());
+      helper.setSubject("Thông tin tài khoản của bạn");
+      helper.setText(htmlContent, true);
       mailSender.send(message);
     } catch (MessagingException e) {
       throw new RuntimeException("Gửi email thất bại", e);

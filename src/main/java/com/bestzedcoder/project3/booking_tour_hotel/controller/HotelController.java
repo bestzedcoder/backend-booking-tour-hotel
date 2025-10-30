@@ -5,15 +5,18 @@ import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.RoomsCreatingRe
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.PageResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.HotelStar;
+import com.bestzedcoder.project3.booking_tour_hotel.enums.RoomStatus;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IHotelService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,8 +39,8 @@ public class HotelController {
 
   @GetMapping("/{ownerId}")
   @PreAuthorize("hasRole('BUSINESS')")
-  public ResponseEntity<ApiResponse<?>> getHotelsByOwnerId(@PathVariable("ownerId") Long id) {
-    ApiResponse<?> response = this.hotelService.getHotelsByOwnerId(id);
+  public ResponseEntity<PageResponse<?>> getHotelsByOwnerId(@PathVariable("ownerId") Long id, @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit ) {
+    PageResponse<?> response = this.hotelService.getHotelsByOwnerId(page,limit,id);
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
@@ -58,6 +61,19 @@ public class HotelController {
       @RequestParam(required = false) String city,
       @RequestParam(required = false) HotelStar hotelStar) {
     PageResponse<?> response = this.hotelService.searchByUser(page,limit,hotelName,address,city,hotelStar);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
+
+  @PutMapping("/{hotelId}/rooms")
+  public ResponseEntity<ApiResponse<?>> updateStatusRoom(@PathVariable("hotelId") Long id,@RequestPart("StatusRoom")
+      RoomStatus roomStatus,@RequestPart("RoomName") String roomName) {
+    ApiResponse<?> response = this.hotelService.updateStatusRoom(id,roomName ,roomStatus);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
+
+  @DeleteMapping("/{hotelId}")
+  public ResponseEntity<ApiResponse<?>> deleteHotel(@PathVariable("hotelId") Long hotelId) {
+    ApiResponse<?> response = this.hotelService.deleteHotel(hotelId);
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 }

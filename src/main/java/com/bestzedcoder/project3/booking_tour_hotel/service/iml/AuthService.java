@@ -4,8 +4,8 @@ import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.RefreshTokenReq
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserSignupRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.LoginResponse;
-import com.bestzedcoder.project3.booking_tour_hotel.enums.ErrorCode;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestException;
+import com.bestzedcoder.project3.booking_tour_hotel.exception.ResourceNotFoundException;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.UnauthorizedException;
 import com.bestzedcoder.project3.booking_tour_hotel.mail.IEmailService;
 import com.bestzedcoder.project3.booking_tour_hotel.mail.MailDetails;
@@ -62,8 +62,8 @@ public class AuthService implements IAuthService {
     User user = (User) authenticated.getPrincipal();
     String access_token = this.jwtUtils.JwtGenerator(user, secretKey , expirationTimeAccess);
     String refresh_token = this.jwtUtils.JwtGenerator(user, secretKey , expirationTimeRefresh);
-    this.redisService.saveKeyAndValue("accessToken:"+user.getId() , access_token , expirationTimeAccess , TimeUnit.SECONDS);
-    this.redisService.saveKeyAndValue("refreshToken:"+user.getId() , refresh_token , expirationTimeRefresh , TimeUnit.SECONDS);
+    this.redisService.saveKeyAndValue("auth:accessToken:"+user.getId() , access_token , expirationTimeAccess , TimeUnit.SECONDS);
+    this.redisService.saveKeyAndValue("auth:refreshToken:"+user.getId() , refresh_token , expirationTimeRefresh , TimeUnit.SECONDS);
     LoginResponse loginResponse = new LoginResponse(user.getId(),user.getUsername() , user.getProfile() , access_token, refresh_token ,  user.getUpdateProfile());
     return ApiResponse.<LoginResponse>builder().success(true).data(loginResponse).message("login success").build();
   }
@@ -73,16 +73,14 @@ public class AuthService implements IAuthService {
     String username = userSignupRequest.getUsername();
     String password = userSignupRequest.getPassword();
     String email = userSignupRequest.getEmail();
-    var checkUser = this.userRepository.findByEmail(email);
-    if (checkUser != null) {
-      throw new BadRequestException(ErrorCode.EMAIL_EXISTED.getMessage());
+    if (userRepository.existsByUsername(username)) {
+      throw new BadRequestException("Username đã tồn tại");
     }
-    checkUser = this.userRepository.findByUsername(username);
-    if (checkUser != null) {
-      throw new BadRequestException(ErrorCode.USERNAME_EXISTED.getMessage());
+    if (userRepository.existsByEmail(email)) {
+      throw new BadRequestException("Email đã tồn tại");
     }
 
-    Role role = this.roleRepository.findByName("ROLE_CUSTOMER");
+    Role role = this.roleRepository.findByName("ROLE_CUSTOMER").orElseThrow(() -> new ResourceNotFoundException("Role customer not found"));
     Profile profile = Profile.builder().fullName("New Customer").build();
     User newUser = User.builder().email(email).username(username).password(this.passwordEncoder.encode(password)).profile(profile).enabled(false).updateProfile(false).roles(
         Set.of(role)).build();
@@ -114,7 +112,7 @@ public class AuthService implements IAuthService {
   public ApiResponse<?> refresh(RefreshTokenReqest refreshTokenReqest) {
     Long userId = refreshTokenReqest.getUserId();
     String refreshToken = refreshTokenReqest.getRefreshToken();
-    String refreshRedis = this.redisService.getValue("refreshToken:"+userId,new TypeReference<String>() {});
+    String refreshRedis = this.redisService.getValue("auth:refreshToken:"+userId,new TypeReference<String>() {});
     if(refreshRedis == null) throw new UnauthorizedException("Refresh token expired");
     else if(!refreshRedis.equals(refreshToken)) {
       throw new UnauthorizedException("Refresh token invalid");
@@ -122,7 +120,7 @@ public class AuthService implements IAuthService {
     User user = this.userRepository.findById(userId).orElseThrow(() -> new BadRequestException(
         "User not found"));
     String accessTokenNew = this.jwtUtils.JwtGenerator(user, secretKey , expirationTimeAccess);
-    this.redisService.saveKeyAndValue("accessToken:"+user.getId() , accessTokenNew , expirationTimeAccess , TimeUnit.SECONDS);
+    this.redisService.saveKeyAndValue("auth:accessToken:"+user.getId() , accessTokenNew , expirationTimeAccess , TimeUnit.SECONDS);
     return ApiResponse.builder().success(true).message("access_token new").data(Map.of("access_token" , accessTokenNew)).build();
   }
 
@@ -132,8 +130,8 @@ public class AuthService implements IAuthService {
     User user = (User) authentication.getPrincipal();
     String accessToken = (String) this.redisService.getValue("accessToken:"+user.getId(),new TypeReference<String>() {});
     this.redisService.saveKeyAndValue("BlackList:"+accessToken+user.getId() , accessToken , expirationTimeAccess , TimeUnit.SECONDS);
-    this.redisService.deleteKey("accessToken:"+user.getId());
-    this.redisService.deleteKey("refreshToken:"+user.getId());
+    this.redisService.deleteKey("auth:accessToken:"+user.getId());
+    this.redisService.deleteKey("auth:refreshToken:"+user.getId());
     return ApiResponse.builder().success(true).message("logout success").build();
   }
 

@@ -47,4 +47,9 @@ public class redisService implements IRedisService {
       this.redisTemplate.delete(keys);
     }
   }
+
+  @Override
+  public void clear() {
+    this.redisTemplate.getConnectionFactory().getConnection().flushAll();
+  }
 }

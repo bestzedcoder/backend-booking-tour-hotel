@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Thông tin tài khoản của bạn</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      background-color: #ffffff;
+      margin: 40px auto;
+      padding: 20px 40px;
+      border-radius: 8px;
+      max-width: 500px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #007BFF;
+      text-align: center;
+    }
+    p {
+      font-size: 15px;
+      color: #333333;
+    }
+    .info-box {
+      background-color: #f1f1f1;
+      border-left: 5px solid #007BFF;
+      padding: 10px 15px;
+      margin: 15px 0;
+      border-radius: 5px;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      color: #999;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Xin chào, <span th:text="${fullName}">Người dùng</span> 👋</h2>
+  <p>Tài khoản của bạn đã được tạo thành công trên hệ thống Booking Tour & Hotel.</p>
+  <div class="info-box">
+    <p><strong>Tên đăng nhập:</strong> <span th:text="${username}"></span></p>
+    <p><strong>Mật khẩu tạm thời:</strong> <span th:text="${password}"></span></p>
+  </div>
+  <p>Vui lòng đăng nhập vào hệ thống và đổi mật khẩu để bảo mật tài khoản.</p>
+  <div class="footer">
+    <p>Trân trọng,<br/>Đội ngũ hỗ trợ Booking Tour & Hotel</p>
+  </div>
+</div>
+</body>
+</html>

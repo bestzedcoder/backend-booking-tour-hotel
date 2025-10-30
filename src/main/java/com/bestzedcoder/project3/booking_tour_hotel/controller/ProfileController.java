@@ -17,11 +17,13 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("profile")
 public class ProfileController {
-  private final IProfileService profileSerice;
-  @PreAuthorize("hasRole('ROLE_CUSTOMER')")
-  @PutMapping(value = "/update/{id}" , consumes = {"multipart/form-data"})
-  public ResponseEntity<ApiResponse<?>> update(@PathVariable("id") Long id,@RequestPart("data") UserUpdatingProfile userUpdatingProfile, @RequestPart(value = "image" , required = false) MultipartFile image) {
-    ApiResponse<?> response = this.profileSerice.update(id,userUpdatingProfile,image);
+  private final IProfileService profileService;
+
+  @PutMapping(value = "/{id}" , consumes = {"multipart/form-data"})
+  public ResponseEntity<ApiResponse<?>> update(@PathVariable("id") Long id,
+                                               @RequestPart("data") UserUpdatingProfile userUpdatingProfile,
+                                               @RequestPart(value = "image" , required = false) MultipartFile image) {
+    ApiResponse<?> response = this.profileService.update(id,userUpdatingProfile,image);
     return ResponseEntity.ok(response);
   }
 }

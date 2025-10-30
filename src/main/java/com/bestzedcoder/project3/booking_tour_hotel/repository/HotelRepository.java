@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface HotelRepository extends JpaRepository<Hotel, Long> {
-  List<Hotel> findByOwnerId(Long ownerId);
+  Page<Hotel> findByOwnerId(Long ownerId,Pageable pageable);
 
   @Query("""
         SELECT h

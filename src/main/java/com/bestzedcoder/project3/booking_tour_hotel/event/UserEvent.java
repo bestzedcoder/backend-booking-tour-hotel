@@ -2,7 +2,6 @@ package com.bestzedcoder.project3.booking_tour_hotel.event;
 
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
 import com.bestzedcoder.project3.booking_tour_hotel.redis.IRedisService;
-import jakarta.persistence.PostLoad;
 import jakarta.persistence.PostPersist;
 import jakarta.persistence.PostRemove;
 import jakarta.persistence.PostUpdate;
@@ -18,9 +17,15 @@ public class UserEvent {
 
   @PostUpdate
   @PostPersist
-  @PostRemove
-  public void onUserCreated(User user) {
+  public void onUserCreatedOrUpdated(User user) {
     log.info("User updated/created/deleted: {} - clearing user cache...", user.getId());
-    this.redisService.deleteKey("getAllUsers");
+    this.redisService.deleteByPattern("search:users:*");
   }
+  @PostRemove
+  public void onUserDeleted(User user) {
+    log.info("User deleted: {} - clearing user cache...", user.getId());
+    this.redisService.deleteKey("auth:accessToken:" + user.getId());
+    this.redisService.deleteKey("auth:refreshToken:" + user.getId());
+  }
+
 }

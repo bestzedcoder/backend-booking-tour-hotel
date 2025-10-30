@@ -10,4 +10,5 @@ public interface IRedisService {
   <T> T getValue(String key, TypeReference<T> typeReference);
   void deleteKey(String key);
   void deleteByPattern(String pattern);
+  void clear();
 }

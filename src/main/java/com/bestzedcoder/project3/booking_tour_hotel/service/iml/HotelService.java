@@ -10,6 +10,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.enums.HotelStar;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.RoomStatus;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.RoomType;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestException;
+import com.bestzedcoder.project3.booking_tour_hotel.exception.ResourceNotFoundException;
 import com.bestzedcoder.project3.booking_tour_hotel.mapper.HotelMapper;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Hotel;
 import com.bestzedcoder.project3.booking_tour_hotel.model.ImageHotel;
@@ -17,11 +18,11 @@ import com.bestzedcoder.project3.booking_tour_hotel.model.Room;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
 import com.bestzedcoder.project3.booking_tour_hotel.redis.IRedisService;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.HotelRepository;
+import com.bestzedcoder.project3.booking_tour_hotel.repository.RoomRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IHotelService;
 import com.bestzedcoder.project3.booking_tour_hotel.upload.ICloudinaryService;
 import com.fasterxml.jackson.core.type.TypeReference;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -45,6 +46,7 @@ public class HotelService implements IHotelService {
   private final UserRepository userRepository;
   private final HotelRepository hotelRepository;
   private final IRedisService redisService;
+  private final RoomRepository roomRepository;
   @Override
   public ApiResponse<?> create(HotelCreatingRequest hotelCreatingRequest, MultipartFile[] images) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -71,36 +73,30 @@ public class HotelService implements IHotelService {
   }
 
   @Override
-  public ApiResponse<?> getHotelsByOwnerId(Long ownerId) {
-    String cacheKey = "getHotelsByOwner:" + ownerId;
+  public PageResponse<?> getHotelsByOwnerId(int page,int limit , Long ownerId) {
+    String cacheKey = "search:hotel:getHotelsByOwner:" + ownerId;
 
-    List<HotelResponse> cachedHotels = redisService.getValue(cacheKey , new TypeReference<List<HotelResponse>>(){});
-    if (cachedHotels != null && !cachedHotels.isEmpty()) {
-      return ApiResponse.builder()
-          .success(true)
-          .message("Lấy danh sách khách sạn từ cache")
-          .data(cachedHotels)
-          .build();
+    PageResponse<HotelResponse> cachedHotels = redisService.getValue(cacheKey , new TypeReference<PageResponse<HotelResponse>>(){});
+    if (cachedHotels != null) {
+      return cachedHotels;
     }
 
-    List<Hotel> hotels = hotelRepository.findByOwnerId(ownerId);
+    Pageable pageable = PageRequest.of(page - 1, limit);
+
+    Page<Hotel> hotels = this.hotelRepository.findByOwnerId(ownerId, pageable);
     if (hotels.isEmpty()) {
-      return ApiResponse.builder()
+      return PageResponse.builder()
           .success(true)
           .message("Không tìm được khách sạn sở hữu bởi user có id = " + ownerId)
           .build();
     }
-    List<HotelResponse> responses = hotels.stream()
+    List<HotelResponse> data = hotels.getContent().stream()
         .map(HotelMapper::hotelToHotelResponse)
         .toList();
+    PageResponse<HotelResponse> response = PageResponse.<HotelResponse>builder().currentPages(page).result(data).success(true).message("Search successfully").pageSizes(limit).totalPages(hotels.getTotalPages()).totalElements(hotels.getTotalElements()).build();
+    redisService.saveKeyAndValue(cacheKey, response, "2", TimeUnit.MINUTES);
 
-    redisService.saveKeyAndValue(cacheKey, responses, "10", TimeUnit.MINUTES);
-
-    return ApiResponse.builder()
-        .success(true)
-        .message("Lấy danh sách khách sạn thành công")
-        .data(responses)
-        .build();
+    return response;
   }
 
   @Override
@@ -135,6 +131,8 @@ public class HotelService implements IHotelService {
     PageResponse<HotelSearchResponse> dataCache = this.redisService.getValue(key,
         new TypeReference<PageResponse<HotelSearchResponse>>() {});
     if(dataCache != null) {
+      dataCache.setSuccess(true);
+      dataCache.setMessage("Search successfully");
       return dataCache;
     }
     Pageable pageable = PageRequest.of(page - 1, limit);
@@ -152,6 +150,24 @@ public class HotelService implements IHotelService {
         .totalElements(data.getTotalElements())
         .build();
     this.redisService.saveKeyAndValue(key, response, "1", TimeUnit.MINUTES);
+    response.setSuccess(true);
+    response.setMessage("Search successfully");
     return response;
   }
+
+  @Override
+  public ApiResponse<?> deleteHotel(Long hotelId) {
+    this.hotelRepository.deleteById(hotelId);
+    return ApiResponse.builder().success(true).message("Deleted success").build();
+  }
+
+  @Override
+  public ApiResponse<?> updateStatusRoom(Long hotelId , String roomName , RoomStatus roomStatus) {
+    Room room = this.roomRepository.findByRoomNameAndHotelId(roomName , hotelId).orElseThrow(() -> new ResourceNotFoundException("Khong tim duoc room"));
+    room.setStatus(roomStatus);
+    this.roomRepository.save(room);
+    return ApiResponse.builder().success(true).message("Updated room successfully.").build();
+  }
+
+
 }

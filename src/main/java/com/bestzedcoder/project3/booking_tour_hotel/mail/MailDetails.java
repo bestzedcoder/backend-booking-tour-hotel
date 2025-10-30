@@ -10,4 +10,6 @@ public class MailDetails {
   private String to;
   private String token;
   private String username;
+  private String fullName;
+  private String rawPassword;
 }
