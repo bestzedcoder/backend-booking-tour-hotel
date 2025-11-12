@@ -3,6 +3,7 @@ package com.bestzedcoder.project3.booking_tour_hotel.service.iml;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserCreatingRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserUpdatingRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
+import com.bestzedcoder.project3.booking_tour_hotel.dto.response.GetUserAllResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.PageResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.UserResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestException;
@@ -107,9 +108,16 @@ public class UserService implements IUserService {
   }
 
   @Override
+  @Transactional
   public ApiResponse<?> updateUserById(Long id, UserUpdatingRequest request, MultipartFile image) {
     User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(
         "Không tìm được user với id là: " + id));
+    user.setEnabled(request.isActive());
+    Set<Role> roles = Arrays.stream(request.getRoles())
+        .map(roleName -> roleRepository.findByName(roleName)
+            .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + roleName)))
+        .collect(Collectors.toSet());
+    user.setRoles(roles);
     Profile profile = user.getProfile();
     profile.setFullName(request.getFullName());
     profile.setAddress(request.getAddress());
@@ -125,6 +133,12 @@ public class UserService implements IUserService {
       profile.setImage(img);
     }
     this.userRepository.save(user);
+    String accessToken =  this.redisService.getValue("auth:accessToken:"+user.getId(),new TypeReference<String>() {});
+    if(accessToken != null) {
+      this.redisService.saveKeyAndValue("BlackList:"+accessToken+user.getId() , accessToken , "3" , TimeUnit.MINUTES);
+      this.redisService.deleteKey("auth:accessToken:"+user.getId());
+      this.redisService.deleteKey("auth:refreshToken:"+user.getId());
+    }
     return ApiResponse.builder().success(true).message("Updated user successfully").build();
   }
 
@@ -141,8 +155,8 @@ public class UserService implements IUserService {
 
     Pageable pageable = PageRequest.of(page - 1, limit);
     Page<User> data = this.userRepository.findAll(pageable);
-    List<UserResponse> users = data.getContent().stream().map(UserMapper::toUserResponse).toList();
-    PageResponse<UserResponse> response = PageResponse.<UserResponse>builder()
+    List<GetUserAllResponse> users = data.getContent().stream().map(UserMapper::toGetUserAllResponse).toList();
+    PageResponse<GetUserAllResponse> response = PageResponse.<GetUserAllResponse>builder()
         .currentPages(page)
         .pageSizes(limit)
         .totalPages(data.getTotalPages())
@@ -156,6 +170,7 @@ public class UserService implements IUserService {
   }
 
   @Override
+  @Transactional
   public ApiResponse<?> deleteUserById(Long id) {
     this.userRepository.deleteById(id);
     return ApiResponse.builder().success(true).message("Delete user success").build();

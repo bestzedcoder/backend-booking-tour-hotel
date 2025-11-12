@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class HotelSearchResponse {
+  private Long hotelId;
   private String hotelName;
   private String address;
   private String city;

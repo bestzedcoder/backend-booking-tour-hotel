@@ -6,8 +6,8 @@ import com.bestzedcoder.project3.booking_tour_hotel.model.Role;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.RoleRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -48,8 +48,15 @@ public class Application implements CommandLineRunner {
 		var user = this.userRepository.findByUsername("admin");
 		if (user == null) {
 			Profile profile = Profile.builder().fullName("admin").build();
-			User admin = User.builder().roles(Set.of(this.roleRepository.findByName("ROLE_ADMIN").orElseThrow(() -> new ResourceNotFoundException(
-          "Role admin not found")))).email("admin@gmail.com").username("admin").password(this.passwordEncoder.encode("admin")).enabled(true).profile(profile).updateProfile(true).build();
+			User admin = User.builder()
+					.roles(new HashSet<>(this.roleRepository.findAll()))
+					.email("admin@gmail.com")
+					.username("admin")
+					.password(this.passwordEncoder.encode("admin"))
+					.enabled(true)
+					.profile(profile)
+					.updateProfile(true)
+					.build();
 			profile.setUser(admin);
 			this.userRepository.save(admin);
 		}

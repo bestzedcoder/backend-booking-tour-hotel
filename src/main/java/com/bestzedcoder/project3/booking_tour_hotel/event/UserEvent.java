@@ -24,6 +24,7 @@ public class UserEvent {
   @PostRemove
   public void onUserDeleted(User user) {
     log.info("User deleted: {} - clearing user cache...", user.getId());
+    this.redisService.deleteByPattern("search:users:*");
     this.redisService.deleteKey("auth:accessToken:" + user.getId());
     this.redisService.deleteKey("auth:refreshToken:" + user.getId());
   }

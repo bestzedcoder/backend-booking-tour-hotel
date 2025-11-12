@@ -4,6 +4,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserUpdatingPro
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestException;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.ResourceNotFoundException;
+import com.bestzedcoder.project3.booking_tour_hotel.mapper.UserMapper;
 import com.bestzedcoder.project3.booking_tour_hotel.upload.ICloudinaryService;
 import com.bestzedcoder.project3.booking_tour_hotel.model.ImageProfile;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Profile;
@@ -14,6 +15,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.service.IProfileService;
 import jakarta.transaction.Transactional;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,29 +28,28 @@ public class ProfileService implements IProfileService {
 
   @Override
   @Transactional
-  public ApiResponse<?> update(Long id, UserUpdatingProfile userUpdatingProfile,
+  public ApiResponse<?> update(UserUpdatingProfile userUpdatingProfile,
       MultipartFile multipartFile) {
-    Profile profile = this.profileRepository.findProfileByUserId(id).orElseThrow(() -> new ResourceNotFoundException(
-        "Profile not found"));
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    Profile profile = user.getProfile();
     profile.setFullName(userUpdatingProfile.getFullName());
     profile.setPhoneNumber(userUpdatingProfile.getPhone());
     profile.setAddress(userUpdatingProfile.getAddress());
     if (multipartFile != null) {
-      if(profile.getImage() != null) {
+      if (profile.getImage() != null) {
         this.cloudinaryService.deleteImage(profile.getImage().getPublicId());
       }
-      Map<String,String> result = this.cloudinaryService.validationAndUpload(multipartFile , "profile");
+      Map<String, String> result = this.cloudinaryService.validationAndUpload(multipartFile,
+          "profile");
       ImageProfile image = profile.getImage() != null ? profile.getImage() : new ImageProfile();
       image.setPublicId(result.get("public_id"));
       image.setUrl(result.get("url"));
       profile.setImage(image);
     }
-    User user = this.userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(
-        "User not found"));
     user.setUpdateProfile(true);
     user.setProfile(profile);
     profile.setUser(user);
     this.userRepository.save(user);
-    return ApiResponse.builder().success(true).message("Update profile success").data(Map.of("updateProfile", true,"profile",profile)).build();
+    return ApiResponse.builder().success(true).message("Update profile success").data(UserMapper.toUserResponse(user)).build();
   }
 }

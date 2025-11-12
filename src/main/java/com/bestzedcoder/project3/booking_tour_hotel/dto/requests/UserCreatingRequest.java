@@ -34,5 +34,4 @@ public class UserCreatingRequest {
 
   @Size(min = 1, message = "Phải có ít nhất 1 vai trò (role)")
   private String[] roles;
-
 }

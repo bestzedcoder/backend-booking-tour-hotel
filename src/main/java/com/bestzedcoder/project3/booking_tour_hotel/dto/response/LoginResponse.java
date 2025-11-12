@@ -9,10 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginResponse {
-  private Long userId;
-  private String username;
-  private Profile profile;
   private String access_token;
   private String refresh_token;
-  private boolean updateProfile;
 }

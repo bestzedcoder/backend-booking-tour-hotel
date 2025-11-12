@@ -1,5 +1,6 @@
 package com.bestzedcoder.project3.booking_tour_hotel.service;
 
+import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.ChangePasswordRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.RefreshTokenReqest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserSignupRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
@@ -11,4 +12,6 @@ public interface IAuthService {
   ApiResponse<?> verify(String code,String email);
   ApiResponse<?> refresh(RefreshTokenReqest refreshTokenReqest);
   ApiResponse<?> logout();
+  ApiResponse<?> authProfile();
+  ApiResponse<?> changePassword(ChangePasswordRequest changePasswordRequest);
 }

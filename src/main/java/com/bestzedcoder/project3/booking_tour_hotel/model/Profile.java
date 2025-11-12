@@ -32,7 +32,7 @@ public class Profile extends BaseEntity {
   private String phoneNumber;
   private String address;
 
-  @OneToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "image_id")
   private ImageProfile image;
 

@@ -1,9 +1,10 @@
 package com.bestzedcoder.project3.booking_tour_hotel.service.iml;
 
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.HotelCreatingRequest;
+import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.HotelUpdatingRequest;
+import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.RoomUpdatingRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.RoomsCreatingRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
-import com.bestzedcoder.project3.booking_tour_hotel.dto.response.HotelResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.HotelSearchResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.PageResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.HotelStar;
@@ -23,7 +24,9 @@ import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IHotelService;
 import com.bestzedcoder.project3.booking_tour_hotel.upload.ICloudinaryService;
 import com.fasterxml.jackson.core.type.TypeReference;
+import jakarta.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -73,27 +76,31 @@ public class HotelService implements IHotelService {
   }
 
   @Override
-  public PageResponse<?> getHotelsByOwnerId(int page,int limit , Long ownerId) {
-    String cacheKey = "search:hotel:getHotelsByOwner:" + ownerId;
+  public PageResponse<?> getHotelsByOwner(int page, int limit, String hotelName, String city ,
+      HotelStar hotelStar) {
+    User owner = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    Long ownerId = owner.getId();
+    String cacheKey = String.format("search:hotel:owner:%d:name:%s:city:%s:star:%s:page:%d:limit:%d",
+        ownerId,
+        hotelName != null ? hotelName : "",
+        city != null ? city : "",
+        hotelStar != null ? hotelStar.name() : "",
+        page,
+        limit
+    );
 
-    PageResponse<HotelResponse> cachedHotels = redisService.getValue(cacheKey , new TypeReference<PageResponse<HotelResponse>>(){});
+    PageResponse<HotelSearchResponse> cachedHotels = redisService.getValue(cacheKey , new TypeReference<PageResponse<HotelSearchResponse>>(){});
     if (cachedHotels != null) {
       return cachedHotels;
     }
 
     Pageable pageable = PageRequest.of(page - 1, limit);
 
-    Page<Hotel> hotels = this.hotelRepository.findByOwnerId(ownerId, pageable);
-    if (hotels.isEmpty()) {
-      return PageResponse.builder()
-          .success(true)
-          .message("Không tìm được khách sạn sở hữu bởi user có id = " + ownerId)
-          .build();
-    }
-    List<HotelResponse> data = hotels.getContent().stream()
-        .map(HotelMapper::hotelToHotelResponse)
+    Page<Hotel> hotels = this.hotelRepository.searchHotelsByOwnerId(ownerId,hotelName,city,hotelStar,pageable);
+    List<HotelSearchResponse> data = hotels.getContent().stream()
+        .map(HotelMapper::hotelToHotelSearchResponse)
         .toList();
-    PageResponse<HotelResponse> response = PageResponse.<HotelResponse>builder().currentPages(page).result(data).success(true).message("Search successfully").pageSizes(limit).totalPages(hotels.getTotalPages()).totalElements(hotels.getTotalElements()).build();
+    PageResponse<HotelSearchResponse> response = PageResponse.<HotelSearchResponse>builder().currentPages(page).result(data).success(true).message("Search successfully").pageSizes(limit).totalPages(hotels.getTotalPages()).totalElements(hotels.getTotalElements()).build();
     redisService.saveKeyAndValue(cacheKey, response, "2", TimeUnit.MINUTES);
 
     return response;
@@ -101,15 +108,15 @@ public class HotelService implements IHotelService {
 
   @Override
   public ApiResponse<?> createRoom(Long hotelId, RoomsCreatingRequest roomsCreatingRequest) {
-    Hotel hotel = this.hotelRepository.findById(hotelId).orElseThrow(() -> new BadRequestException(
+    Hotel hotel = this.hotelRepository.findById(hotelId).orElseThrow(() -> new ResourceNotFoundException(
         "Không tồn tại hotel với id: " + hotelId));
     int count = roomsCreatingRequest.getQuantity();
     RoomType roomType = roomsCreatingRequest.getRoomType();
-    int countTypeRoom = hotel.getRooms().stream().map(room -> room.getType() == roomType).toList().size();
+    int countTypeRoom = (int) hotel.getRooms().stream().filter(room -> room.getType() == roomType).count();
     List<Room> rooms = new ArrayList<>();
-    for (int i = 0; i < count; i++) {
+    for (int i = 1; i <= count; i++) {
       int roomId = countTypeRoom + i;
-      Room room = Room.builder().roomName(roomType+"_"+roomId).type(roomType).pricePerDay(
+      Room room = Room.builder().roomName(roomType.toString().substring(0,2)+"_"+roomId).type(roomType).pricePerDay(
           roomsCreatingRequest.getPricePerDay()).pricePerHour(roomsCreatingRequest.getPricePerHour()).status(
           RoomStatus.AVAILABLE).hotel(hotel).build();
       rooms.add(room);
@@ -120,12 +127,11 @@ public class HotelService implements IHotelService {
   }
 
   @Override
-  public PageResponse<?> searchByUser(int page, int limit, String hotelName, String address,
+  public PageResponse<?> searchByUser(int page, int limit, String hotelName,
       String city, HotelStar hotelStar) {
-    String key = String.format("search:hotel:p%d:l%d:n%s:a%s:c%s:s%s",
+    String key = String.format("search:hotel:page:%d:limit:%d:name:%s:city:%s:star%s",
         page, limit,
         hotelName != null ? hotelName.toLowerCase() : "",
-        address != null ? address.toLowerCase() : "",
         city != null ? city.toLowerCase() : "",
         hotelStar != null ? hotelStar.toString().toLowerCase() : "");
     PageResponse<HotelSearchResponse> dataCache = this.redisService.getValue(key,
@@ -136,7 +142,7 @@ public class HotelService implements IHotelService {
       return dataCache;
     }
     Pageable pageable = PageRequest.of(page - 1, limit);
-    Page<Hotel> data = this.hotelRepository.searchHotels(hotelName,address,city,hotelStar,pageable);
+    Page<Hotel> data = this.hotelRepository.searchHotels(hotelName,city,hotelStar,pageable);
     List<HotelSearchResponse> hotels = data.getContent()
         .stream()
         .map(HotelMapper::hotelToHotelSearchResponse)
@@ -156,18 +162,119 @@ public class HotelService implements IHotelService {
   }
 
   @Override
-  public ApiResponse<?> deleteHotel(Long hotelId) {
-    this.hotelRepository.deleteById(hotelId);
-    return ApiResponse.builder().success(true).message("Deleted success").build();
+  public PageResponse<?> searchByAdmin(int page, int limit, String hotelName, String city,
+      HotelStar hotelStar, String owner) {
+    User user = this.userRepository.findByUsername(owner);
+    if (user == null) {
+      throw new ResourceNotFoundException("Owner not found");
+    }
+    Long ownerId = user.getId();
+    String cacheKey = String.format("search:hotel:owner:%d:name:%s:city:%s:star:%s:page:%d:limit:%d",
+        ownerId,
+        hotelName != null ? hotelName : "",
+        city != null ? city : "",
+        hotelStar != null ? hotelStar.name() : "",
+        page,
+        limit
+    );
+
+    PageResponse<HotelSearchResponse> cachedHotels = redisService.getValue(cacheKey , new TypeReference<PageResponse<HotelSearchResponse>>(){});
+    if (cachedHotels != null) {
+      return cachedHotels;
+    }
+
+    Pageable pageable = PageRequest.of(page - 1, limit);
+
+    Page<Hotel> hotels = this.hotelRepository.searchHotelsByOwnerId(ownerId,hotelName,city,hotelStar,pageable);
+    List<HotelSearchResponse> data = hotels.getContent().stream()
+        .map(HotelMapper::hotelToHotelSearchResponse)
+        .toList();
+    PageResponse<HotelSearchResponse> response = PageResponse.<HotelSearchResponse>builder().currentPages(page).result(data).success(true).message("Search successfully").pageSizes(limit).totalPages(hotels.getTotalPages()).totalElements(hotels.getTotalElements()).build();
+    redisService.saveKeyAndValue(cacheKey, response, "2", TimeUnit.MINUTES);
+
+    return response;
   }
 
   @Override
-  public ApiResponse<?> updateStatusRoom(Long hotelId , String roomName , RoomStatus roomStatus) {
-    Room room = this.roomRepository.findByRoomNameAndHotelId(roomName , hotelId).orElseThrow(() -> new ResourceNotFoundException("Khong tim duoc room"));
-    room.setStatus(roomStatus);
-    this.roomRepository.save(room);
-    return ApiResponse.builder().success(true).message("Updated room successfully.").build();
+  public ApiResponse<?> getHotelById(Long hotelId) {
+    Hotel hotel = this.hotelRepository.findById(hotelId).orElseThrow(() -> new ResourceNotFoundException("Hotel not found"));
+    User owner = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    if (!owner.getId().equals(hotel.getOwner().getId())) {
+      throw new BadRequestException("Error: You are not the owner of this hotel");
+    }
+    return ApiResponse.builder().success(true).data(HotelMapper.hotelToHotelResponse(hotel)).message("Hotel found").build();
   }
 
+  @Override
+  public ApiResponse<?> deleteHotel(Long hotelId) {
+    Hotel hotel = this.hotelRepository.findById(hotelId).orElseThrow(() -> new ResourceNotFoundException("Hotel not found"));
+    User owner = hotel.getOwner();
+    owner.getHotels().remove(hotel);
+    this.userRepository.save(owner);
+    return ApiResponse.builder().success(true).message("Deleted success").build();
+  }
 
+  @Transactional
+  @Override
+  public ApiResponse<?> updateRoom(Long hotelId, Long roomId, RoomUpdatingRequest request) {
+    if (!hotelRepository.existsById(hotelId)) {
+      throw new ResourceNotFoundException("Hotel not found");
+    }
+
+    int updated = this.roomRepository.updateRoomByHotelId(
+        hotelId,
+        roomId,
+        request.getPricePerDay(),
+        request.getPricePerHour(),
+        request.getRoomStatus()
+    );
+
+    if (updated == 0) {
+      throw new ResourceNotFoundException("Room not found for this hotel");
+    }
+
+    return ApiResponse.builder()
+        .success(true)
+        .message("Updated room successfully.")
+        .build();
+  }
+
+  @Override
+  public ApiResponse<?> updateHotel(Long hotelId, HotelUpdatingRequest hotelUpdatingRequest,
+      MultipartFile[] images) {
+    Hotel hotel = this.hotelRepository.findById(hotelId).orElseThrow(() -> new ResourceNotFoundException("Hotel not found"));
+    User owner = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    if (!owner.getId().equals(hotel.getOwner().getId())) {
+      throw new BadRequestException("Error: You are not the owner of this hotel");
+    }
+    Set<ImageHotel> imageHotels = hotel.getImages();
+    if (hotelUpdatingRequest.getImagesOld().length < imageHotels.size()) {
+      List<ImageHotel> imagesDelete = imageHotels.stream()
+          .filter(img -> Arrays.stream(hotelUpdatingRequest.getImagesOld())
+              .noneMatch(url -> url.equals(img.getUrl())))
+          .toList();
+      for (ImageHotel imageHotel : imagesDelete) {
+        this.cloudinaryService.deleteImage(imageHotel.getPublicId());
+        hotel.getImages().remove(imageHotel);
+      }
+    }
+
+    if (images != null) {
+      for(MultipartFile file : images) {
+        Map<String , String> res = this.cloudinaryService.validationAndUpload(file,"hotel");
+        ImageHotel imageHotel = ImageHotel.builder().url(res.get("url")).publicId(res.get("public_id")).hotel(hotel).build();
+        hotel.getImages().add(imageHotel);
+      }
+    }
+
+    hotel.setHotel_description(hotelUpdatingRequest.getHotelDescription());
+    hotel.setHotel_address(hotelUpdatingRequest.getHotelAddress());
+    hotel.setHotel_city(hotelUpdatingRequest.getHotelCity());
+    hotel.setHotel_name(hotelUpdatingRequest.getHotelName());
+    hotel.setHotel_star(hotelUpdatingRequest.getHotelStar());
+
+    this.hotelRepository.save(hotel);
+
+    return ApiResponse.builder().success(true).message("Hotel updated successfully").build();
+  }
 }

@@ -17,13 +17,29 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
         FROM Hotel h
         WHERE
             (:hotelName IS NULL OR LOWER(h.hotel_name) LIKE LOWER(CONCAT('%', :hotelName, '%')))
-        AND (:address IS NULL OR LOWER(h.hotel_address) LIKE LOWER(CONCAT('%', :address, '%')))
         AND (:city IS NULL OR LOWER(h.hotel_city) LIKE LOWER(CONCAT('%', :city, '%')))
         AND (:hotelStar IS NULL OR h.hotel_star = :hotelStar)
     """)
   Page<Hotel> searchHotels(
       @Param("hotelName") String hotelName,
-      @Param("address") String address,
+      @Param("city") String city,
+      @Param("hotelStar") HotelStar hotelStar,
+      Pageable pageable
+  );
+
+
+  @Query("""
+    SELECT h
+    FROM Hotel h
+    WHERE
+        h.owner.id = :ownerId
+        AND (:hotelName IS NULL OR LOWER(h.hotel_name) LIKE LOWER(CONCAT('%', :hotelName, '%')))
+        AND (:city IS NULL OR LOWER(h.hotel_city) LIKE LOWER(CONCAT('%', :city, '%')))
+        AND (:hotelStar IS NULL OR h.hotel_star = :hotelStar)
+""")
+  Page<Hotel> searchHotelsByOwnerId(
+      @Param("ownerId") Long ownerId,
+      @Param("hotelName") String hotelName,
       @Param("city") String city,
       @Param("hotelStar") HotelStar hotelStar,
       Pageable pageable

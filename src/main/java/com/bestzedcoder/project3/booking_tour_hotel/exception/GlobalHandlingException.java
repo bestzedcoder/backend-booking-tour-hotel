@@ -10,6 +10,7 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -89,9 +90,31 @@ public class GlobalHandlingException {
     body.put("success", false);
     body.put("timestamp", LocalDateTime.now().toString());
     body.put("status", HttpStatus.NOT_FOUND.value());
-    body.put("error", "Not Found");
     body.put("message", e.getMessage());
 
     return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(UnauthorizedException.class)
+  public ResponseEntity<Map<String, Object>> handleUnauthorized(UnauthorizedException e) {
+    Map<String, Object> body = new LinkedHashMap<>();
+    body.put("success", false);
+    body.put("timestamp", LocalDateTime.now().toString());
+    body.put("status", HttpStatus.UNAUTHORIZED.value());
+    body.put("message", e.getMessage());
+
+    return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
+  }
+
+
+  @ExceptionHandler(AuthorizationDeniedException.class)
+  public ResponseEntity<Map<String , Object>> handleAccessDeniedException(AccessDeniedException ex) {
+    Map<String, Object> body = new LinkedHashMap<>();
+    body.put("success", false);
+    body.put("timestamp", LocalDateTime.now().toString());
+    body.put("status", HttpStatus.FORBIDDEN.value());
+    body.put("message", "Bạn không có quyền truy cập tài nguyên này.");
+
+    return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
   }
 }

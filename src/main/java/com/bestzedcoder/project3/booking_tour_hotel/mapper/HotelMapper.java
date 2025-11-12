@@ -12,11 +12,13 @@ import org.springframework.stereotype.Component;
 public class HotelMapper {
   public static HotelResponse hotelToHotelResponse(Hotel hotel) {
     HotelResponse hotelResponse = new HotelResponse();
+    hotelResponse.setHotelId(hotel.getId());
     hotelResponse.setHotelName(hotel.getHotel_name());
     hotelResponse.setHotelCity(hotel.getHotel_city());
     hotelResponse.setHotelAddress(hotel.getHotel_address());
     hotelResponse.setHotelDescription(hotel.getHotel_description());
     hotelResponse.setHotelPhone(hotel.getOwner().getProfile().getPhoneNumber());
+    hotelResponse.setHotelStar(hotel.getHotel_star());
     hotelResponse.setHotelImages(
         hotel.getImages().stream().map(ImageHotel::getUrl).toArray(String[]::new));
     hotelResponse.setRooms(hotel.getRooms().stream().map(HotelMapper::roomToRoomResponse).toArray(RoomResponse[]::new));
@@ -25,6 +27,7 @@ public class HotelMapper {
 
   public static HotelSearchResponse hotelToHotelSearchResponse(Hotel hotel) {
     HotelSearchResponse hotelSearchResponse = new HotelSearchResponse();
+    hotelSearchResponse.setHotelId(hotel.getId());
     hotelSearchResponse.setHotelName(hotel.getHotel_name());
     hotelSearchResponse.setCity(hotel.getHotel_city());
     hotelSearchResponse.setAddress(hotel.getHotel_address());
@@ -39,6 +42,7 @@ public class HotelMapper {
 
   private static RoomResponse roomToRoomResponse(Room room) {
     RoomResponse roomResponse = new RoomResponse();
+    roomResponse.setRoomId(room.getId());
     roomResponse.setRoomName(room.getRoomName());
     roomResponse.setRoomType(room.getType());
     roomResponse.setPricePerDay(room.getPricePerDay());

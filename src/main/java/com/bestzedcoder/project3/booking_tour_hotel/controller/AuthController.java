@@ -1,5 +1,6 @@
 package com.bestzedcoder.project3.booking_tour_hotel.controller;
 
+import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.ChangePasswordRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.RefreshTokenReqest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.SignRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserSignupRequest;
@@ -36,8 +37,9 @@ public class AuthController {
   }
 
   @GetMapping("profile")
-  public ResponseEntity<ApiResponse<?>> profile(Authentication authentication) {
-    return ResponseEntity.ok(new ApiResponse<>(true , "success" ,authentication.getPrincipal()));
+  public ResponseEntity<ApiResponse<?>> profile() {
+    ApiResponse<?> response = this.authService.authProfile();
+    return ResponseEntity.ok(response);
   }
 
   @PostMapping("register")
@@ -62,6 +64,12 @@ public class AuthController {
   @GetMapping("logout")
   public ResponseEntity<ApiResponse<?>> logout() {
     ApiResponse<?> response = this.authService.logout();
+    return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("change-password")
+  public ResponseEntity<ApiResponse<?>> changePassword(@RequestBody @Valid ChangePasswordRequest changePasswordRequest) {
+    ApiResponse<?> response =this.authService.changePassword(changePasswordRequest);
     return ResponseEntity.ok(response);
   }
 }

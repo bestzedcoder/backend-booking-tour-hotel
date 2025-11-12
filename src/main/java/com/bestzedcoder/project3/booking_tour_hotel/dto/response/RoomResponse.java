@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RoomResponse {
+  private Long roomId;
   private String roomName;
   private Double pricePerHour;
   private RoomType roomType;

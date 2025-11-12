@@ -1,5 +1,6 @@
 package com.bestzedcoder.project3.booking_tour_hotel.service.iml;
 
+import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.ChangePasswordRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.RefreshTokenReqest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserSignupRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
@@ -9,6 +10,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.exception.ResourceNotFoundEx
 import com.bestzedcoder.project3.booking_tour_hotel.exception.UnauthorizedException;
 import com.bestzedcoder.project3.booking_tour_hotel.mail.IEmailService;
 import com.bestzedcoder.project3.booking_tour_hotel.mail.MailDetails;
+import com.bestzedcoder.project3.booking_tour_hotel.mapper.UserMapper;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Profile;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Role;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
@@ -64,7 +66,7 @@ public class AuthService implements IAuthService {
     String refresh_token = this.jwtUtils.JwtGenerator(user, secretKey , expirationTimeRefresh);
     this.redisService.saveKeyAndValue("auth:accessToken:"+user.getId() , access_token , expirationTimeAccess , TimeUnit.SECONDS);
     this.redisService.saveKeyAndValue("auth:refreshToken:"+user.getId() , refresh_token , expirationTimeRefresh , TimeUnit.SECONDS);
-    LoginResponse loginResponse = new LoginResponse(user.getId(),user.getUsername() , user.getProfile() , access_token, refresh_token ,  user.getUpdateProfile());
+    LoginResponse loginResponse = new LoginResponse( access_token, refresh_token);
     return ApiResponse.<LoginResponse>builder().success(true).data(loginResponse).message("login success").build();
   }
 
@@ -93,6 +95,25 @@ public class AuthService implements IAuthService {
         .success(true)
         .message("Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản trước khi đăng nhập.")
         .build();
+  }
+
+  @Override
+  public ApiResponse<?> authProfile() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    User user = (User) authentication.getPrincipal();
+    return ApiResponse.builder().success(true).data(UserMapper.toUserResponse(user)).build();
+  }
+
+  @Override
+  public ApiResponse<?> changePassword(ChangePasswordRequest changePasswordRequest) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    User user = (User) authentication.getPrincipal();
+    if(!this.passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())) {
+      throw new UnauthorizedException("Password không chính xác.");
+    }
+    user.setPassword(this.passwordEncoder.encode(changePasswordRequest.getNewPassword()));
+    this.userRepository.save(user);
+    return ApiResponse.builder().success(true).message("Change password success").build();
   }
 
   @Override
@@ -128,7 +149,7 @@ public class AuthService implements IAuthService {
   public ApiResponse<?> logout() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     User user = (User) authentication.getPrincipal();
-    String accessToken = (String) this.redisService.getValue("accessToken:"+user.getId(),new TypeReference<String>() {});
+    String accessToken =  this.redisService.getValue("auth:accessToken:"+user.getId(),new TypeReference<String>() {});
     this.redisService.saveKeyAndValue("BlackList:"+accessToken+user.getId() , accessToken , expirationTimeAccess , TimeUnit.SECONDS);
     this.redisService.deleteKey("auth:accessToken:"+user.getId());
     this.redisService.deleteKey("auth:refreshToken:"+user.getId());

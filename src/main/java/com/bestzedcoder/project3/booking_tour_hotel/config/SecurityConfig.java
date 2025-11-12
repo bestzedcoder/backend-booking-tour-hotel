@@ -54,10 +54,20 @@ public class SecurityConfig {
 //    http.httpBasic(AbstractHttpConfigurer::disable);
 
       http.exceptionHandling(exception ->
-        exception.authenticationEntryPoint(new CustomAuthenticationEntryPoint())
-            .accessDeniedHandler(new CustomAccessDeniedHandler())
+        exception.authenticationEntryPoint(authenticationEntryPoint())
+            .accessDeniedHandler(accessDeniedHandler())
       );
     return http.build();
+  }
+
+  @Bean
+  public CustomAccessDeniedHandler accessDeniedHandler() {
+    return new CustomAccessDeniedHandler();
+  }
+
+  @Bean
+  public CustomAuthenticationEntryPoint authenticationEntryPoint() {
+    return new CustomAuthenticationEntryPoint();
   }
 
   @Bean

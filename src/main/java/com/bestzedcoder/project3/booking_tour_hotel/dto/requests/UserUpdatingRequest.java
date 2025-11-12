@@ -1,11 +1,12 @@
 package com.bestzedcoder.project3.booking_tour_hotel.dto.requests;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
+import lombok.Getter;
 
-@Data
+@Getter
 public class UserUpdatingRequest {
   @NotBlank(message = "Số điện thoại không được để trống")
   @Pattern(
@@ -24,4 +25,6 @@ public class UserUpdatingRequest {
   @Size(min = 1, message = "Phải có ít nhất 1 vai trò (role)")
   private String[] roles;
 
+  @NotNull(message = "Trạng thái hoạt động không được để trống")
+  private boolean active;
 }

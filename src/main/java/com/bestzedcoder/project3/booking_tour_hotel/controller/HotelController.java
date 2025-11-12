@@ -1,6 +1,8 @@
 package com.bestzedcoder.project3.booking_tour_hotel.controller;
 
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.HotelCreatingRequest;
+import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.HotelUpdatingRequest;
+import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.RoomUpdatingRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.RoomsCreatingRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.PageResponse;
@@ -37,10 +39,45 @@ public class HotelController {
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
-  @GetMapping("/{ownerId}")
+  @GetMapping
   @PreAuthorize("hasRole('BUSINESS')")
-  public ResponseEntity<PageResponse<?>> getHotelsByOwnerId(@PathVariable("ownerId") Long id, @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit ) {
-    PageResponse<?> response = this.hotelService.getHotelsByOwnerId(page,limit,id);
+  public ResponseEntity<PageResponse<?>> getHotelsByOwnerId(@RequestParam(defaultValue = "1") int page,
+      @RequestParam(defaultValue = "10") int limit,
+      @RequestParam(defaultValue = "") String hotelName,
+      @RequestParam(defaultValue = "") String city,
+      @RequestParam(required = false) HotelStar hotelStar) {
+    PageResponse<?> response = this.hotelService.getHotelsByOwner(page,limit,hotelName,city,hotelStar);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
+
+  @GetMapping("/search")
+  public ResponseEntity<PageResponse<?>> searchHotelsByUser(
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(defaultValue = "10") int limit,
+      @RequestParam(defaultValue = "") String hotelName,
+      @RequestParam(defaultValue = "") String city,
+      @RequestParam(required = false) HotelStar hotelStar) {
+    PageResponse<?> response = this.hotelService.searchByUser(page,limit,hotelName,city,hotelStar);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
+
+  @GetMapping("/admin/search")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<PageResponse<?>> searchHotelsByAdmin(
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(defaultValue = "10") int limit,
+      @RequestParam(defaultValue = "") String hotelName,
+      @RequestParam(defaultValue = "") String city,
+      @RequestParam(required = false) HotelStar hotelStar,
+      @RequestParam(defaultValue = "") String owner
+  ) {
+    PageResponse<?> response = this.hotelService.searchByAdmin(page,limit,hotelName,city,hotelStar,owner);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
+
+  @GetMapping("/{id}")
+  public ResponseEntity<ApiResponse<?>> getHotelById(@PathVariable("id") Long hotelId) {
+    ApiResponse<?> response = this.hotelService.getHotelById(hotelId);
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
@@ -52,28 +89,28 @@ public class HotelController {
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
-  @GetMapping("/search")
-  public ResponseEntity<PageResponse<?>> searchHotelsByUser(
-      @RequestParam(defaultValue = "1") int page,
-      @RequestParam(defaultValue = "10") int limit,
-      @RequestParam(required = false) String hotelName,
-      @RequestParam(required = false) String address,
-      @RequestParam(required = false) String city,
-      @RequestParam(required = false) HotelStar hotelStar) {
-    PageResponse<?> response = this.hotelService.searchByUser(page,limit,hotelName,address,city,hotelStar);
-    return ResponseEntity.status(HttpStatus.OK).body(response);
+  @PutMapping(value = "/{hotelId}" , consumes = {"multipart/form-data"})
+  public ResponseEntity<ApiResponse<?>> updateHotel(@PathVariable("hotelId") Long id,@RequestPart("data") @Valid
+      HotelUpdatingRequest hotelUpdatingRequest,@RequestPart(value = "images" , required = false) MultipartFile[] images) {
+      ApiResponse<?>  response = this.hotelService.updateHotel(id,hotelUpdatingRequest , images);
+      return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
-  @PutMapping("/{hotelId}/rooms")
-  public ResponseEntity<ApiResponse<?>> updateStatusRoom(@PathVariable("hotelId") Long id,@RequestPart("StatusRoom")
-      RoomStatus roomStatus,@RequestPart("RoomName") String roomName) {
-    ApiResponse<?> response = this.hotelService.updateStatusRoom(id,roomName ,roomStatus);
+
+  @PutMapping("/{hotelId}/room/{roomId}")
+  public ResponseEntity<ApiResponse<?>> updateRoom(@PathVariable Long hotelId,@PathVariable Long roomId,@RequestBody @Valid
+      RoomUpdatingRequest roomUpdatingRequest) {
+    ApiResponse<?> response = this.hotelService.updateRoom(hotelId,roomId,roomUpdatingRequest);
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
   @DeleteMapping("/{hotelId}")
+  @PreAuthorize("hasAnyRole('ADMIN','BUSINESS')")
   public ResponseEntity<ApiResponse<?>> deleteHotel(@PathVariable("hotelId") Long hotelId) {
     ApiResponse<?> response = this.hotelService.deleteHotel(hotelId);
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
+
+
+
 }
