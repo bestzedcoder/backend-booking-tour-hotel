@@ -4,6 +4,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.exception.CustomAccessDenied
 import com.bestzedcoder.project3.booking_tour_hotel.exception.CustomAuthenticationEntryPoint;
 import com.bestzedcoder.project3.booking_tour_hotel.security.CustomizeAuthenticationProvider;
 import com.bestzedcoder.project3.booking_tour_hotel.security.JwtValidationFilter;
+import com.bestzedcoder.project3.booking_tour_hotel.security.OAuth2SuccessHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfig {
   private final JwtValidationFilter jwtValidationFilter;
+  private final OAuth2SuccessHandler oAuth2SuccessHandler;
   @Bean
   public SecurityFilterChain configure(HttpSecurity http) throws Exception {
     http
@@ -48,7 +50,9 @@ public class SecurityConfig {
         .authorizeHttpRequests(requests ->requests
             .requestMatchers("/auth/login","/auth/register","/auth/verify" , "/auth/refresh").permitAll()
         .anyRequest().authenticated())
-        .addFilterBefore(jwtValidationFilter, UsernamePasswordAuthenticationFilter.class);
+        .addFilterBefore(jwtValidationFilter, UsernamePasswordAuthenticationFilter.class)
+        .oauth2Login(oauth2 -> oauth2.successHandler(oAuth2SuccessHandler));
+
 //        .authenticationProvider();
 //    http.formLogin(AbstractHttpConfigurer::disable);
 //    http.httpBasic(AbstractHttpConfigurer::disable);

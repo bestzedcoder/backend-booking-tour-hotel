@@ -14,6 +14,16 @@ spring:
   security:
     user:
       name: username
+    oauth2:
+      client:
+        registration:
+          google:
+            client-secret: ${CLIENT_SECRET}
+            client-id: ${CLIENT_ID}
+            redirect-uri: "{baseUrl}/login/oauth2/code/google"
+            scope:
+              - email
+              - profile
   mail:
     host: smtp.gmail.com
     port: 587

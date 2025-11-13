@@ -5,6 +5,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.RefreshTokenReq
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserSignupRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.LoginResponse;
+import java.util.Map;
 
 public interface IAuthService {
   ApiResponse<LoginResponse> login(String username, String password);

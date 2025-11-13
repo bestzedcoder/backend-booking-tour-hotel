@@ -15,7 +15,6 @@ import com.bestzedcoder.project3.booking_tour_hotel.model.Profile;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Role;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
 import com.bestzedcoder.project3.booking_tour_hotel.redis.IRedisService;
-import com.bestzedcoder.project3.booking_tour_hotel.repository.ProfileRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.RoleRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.security.JwtUtils;
@@ -23,7 +22,9 @@ import com.bestzedcoder.project3.booking_tour_hotel.service.IAuthService;
 import com.bestzedcoder.project3.booking_tour_hotel.service.ITokenService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,7 +45,6 @@ public class AuthService implements IAuthService {
   private final IEmailService emailService;
   private final ITokenService tokenService;
   private final RoleRepository roleRepository;
-  private final ProfileRepository profileRepository;
   private final IRedisService redisService;
 
   @Value("${application.security.secretKey}")
