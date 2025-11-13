@@ -2,6 +2,7 @@ package com.bestzedcoder.project3.booking_tour_hotel.mapper;
 
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.HotelResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.HotelSearchResponse;
+import com.bestzedcoder.project3.booking_tour_hotel.dto.response.InfoHotelDetails;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.RoomResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Hotel;
 import com.bestzedcoder.project3.booking_tour_hotel.model.ImageHotel;
@@ -49,5 +50,43 @@ public class HotelMapper {
     roomResponse.setPricePerHour(room.getPricePerHour());
     roomResponse.setStatus(room.getStatus());
     return roomResponse;
+  }
+
+  public static InfoHotelDetails hotelToHotelDetails(Hotel hotel) {
+    InfoHotelDetails details = new InfoHotelDetails();
+    details.setHotelId(hotel.getId());
+    details.setHotelName(hotel.getHotel_name());
+    details.setHotelCity(hotel.getHotel_city());
+    details.setHotelDescription(hotel.getHotel_description());
+    details.setHotelAddress(hotel.getHotel_address());
+    details.setHotelPhone(hotel.getOwner().getProfile().getPhoneNumber());
+    details.setHotelStar(hotel.getHotel_star());
+
+    if (hotel.getImages() != null && !hotel.getImages().isEmpty()) {
+      details.setHotelImages(
+          hotel.getImages().stream()
+              .map(ImageHotel::getUrl)
+              .toArray(String[]::new)
+      );
+    } else {
+      details.setHotelImages(new String[0]);
+    }
+
+    if (hotel.getRooms() != null && !hotel.getRooms().isEmpty()) {
+      details.setRooms(
+          hotel.getRooms().stream()
+              .map(HotelMapper::roomToRoomResponse)
+              .toArray(RoomResponse[]::new)
+      );
+    } else {
+      details.setRooms(new RoomResponse[0]);
+    }
+
+    InfoHotelDetails.InfoOwner ownerInfo = new InfoHotelDetails.InfoOwner();
+    ownerInfo.setFullName(hotel.getOwner().getProfile().getFullName());
+    ownerInfo.setPhoneNumber(hotel.getOwner().getProfile().getPhoneNumber());
+    details.setOwner(ownerInfo);
+
+    return details;
   }
 }

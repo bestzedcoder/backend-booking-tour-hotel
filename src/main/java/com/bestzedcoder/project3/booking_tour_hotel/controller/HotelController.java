@@ -61,6 +61,12 @@ public class HotelController {
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
+  @GetMapping("/{hotelId}/details")
+  public ResponseEntity<ApiResponse<?>> getHotelDetails(@PathVariable("hotelId") Long id) {
+    ApiResponse<?> response = this.hotelService.infoHotelDetails(id);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
+
   @GetMapping("/admin/search")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<PageResponse<?>> searchHotelsByAdmin(

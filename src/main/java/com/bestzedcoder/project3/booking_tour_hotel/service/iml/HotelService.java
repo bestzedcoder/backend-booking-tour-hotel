@@ -6,6 +6,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.RoomUpdatingReq
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.RoomsCreatingRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.HotelSearchResponse;
+import com.bestzedcoder.project3.booking_tour_hotel.dto.response.InfoHotelDetails;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.PageResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.HotelStar;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.RoomStatus;
@@ -276,5 +277,22 @@ public class HotelService implements IHotelService {
     this.hotelRepository.save(hotel);
 
     return ApiResponse.builder().success(true).message("Hotel updated successfully").build();
+  }
+
+  @Override
+  public ApiResponse<?> infoHotelDetails(Long hotelId) {
+    String key = String.format("search:hotel:details:%s", hotelId);
+    ApiResponse<InfoHotelDetails> cacheData = this.redisService.getValue(key, new TypeReference<ApiResponse<InfoHotelDetails>>() {});
+    if(cacheData != null) {
+      return cacheData;
+    }
+    Hotel hotel = this.hotelRepository.findById(hotelId).orElseThrow(() -> new ResourceNotFoundException("Hotel not found"));
+    ApiResponse<InfoHotelDetails> response = ApiResponse.<InfoHotelDetails>builder()
+        .success(true)
+        .data(HotelMapper.hotelToHotelDetails(hotel))
+        .message("Successfully get hotel details")
+        .build();
+    this.redisService.saveKeyAndValue(key , response , "2" , TimeUnit.MINUTES);
+    return response;
   }
 }

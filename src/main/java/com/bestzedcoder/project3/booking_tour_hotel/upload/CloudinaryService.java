@@ -112,7 +112,7 @@ public class CloudinaryService implements ICloudinaryService {
   }
 
   @PreAuthorize("isAuthenticated()")
-  public boolean deleteImage(String publicId) {
+  public void deleteImage(String publicId) {
     try {
       var result = cloudinary.uploader().destroy(publicId, ObjectUtils.asMap(
           "resource_type", "image"
@@ -120,14 +120,11 @@ public class CloudinaryService implements ICloudinaryService {
       String status = (String) result.get("result");
       if ("ok".equals(status)) {
         log.info("Deleted image: {}", publicId);
-        return true;
       } else {
         log.warn("Failed to delete image {}. Result: {}", publicId, status);
-        return false;
       }
     } catch (IOException e) {
       log.error("Error deleting image {}: {}", publicId, e.getMessage());
-      return false;
     }
   }
 }

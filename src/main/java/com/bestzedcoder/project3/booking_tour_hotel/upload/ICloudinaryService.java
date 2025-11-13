@@ -5,5 +5,5 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface ICloudinaryService {
   Map<String, String> validationAndUpload(MultipartFile multipartFile,String folder);
-  boolean deleteImage(String publicId);
+  void deleteImage(String publicId);
 }

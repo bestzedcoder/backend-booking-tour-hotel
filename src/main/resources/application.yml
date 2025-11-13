@@ -1,6 +1,9 @@
 spring:
   application:
     name: Booking Tour & Hotel
+  servlet:
+    multipart:
+      max-file-size: 5MB
   profiles:
     active: dev
   data:
