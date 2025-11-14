@@ -9,6 +9,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
 import java.util.HashSet;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -21,12 +22,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableMethodSecurity
 @SpringBootApplication
 @RequiredArgsConstructor
+@Slf4j
 public class Application implements CommandLineRunner {
 	private final RoleRepository roleRepository;
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 	@Value("${DATABASE_URL}")
 	private String databaseURL;
+
+	@Value("${server.port}")
+	private String port;
 
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
@@ -35,6 +40,7 @@ public class Application implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception {
 		System.out.println("Database URL: " + databaseURL);
+		System.out.println("Server run port: " + port);
 		var roles = this.roleRepository.findAll();
 		if (roles.isEmpty()) {
 			var defaultRoles = List.of(

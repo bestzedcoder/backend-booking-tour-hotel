@@ -44,11 +44,11 @@ public class SecurityConfig {
               }
             }
         ))
-//        .cors(AbstractHttpConfigurer::disable)
         .csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(requests ->requests
-            .requestMatchers("/auth/login","/auth/register","/auth/verify" , "/auth/refresh").permitAll()
+            .requestMatchers("/auth/login","/auth/register","/auth/verify" , "/auth/refresh" ,  "/swagger-ui/**",
+                "/v3/api-docs/**").permitAll()
         .anyRequest().authenticated())
         .addFilterBefore(jwtValidationFilter, UsernamePasswordAuthenticationFilter.class)
         .oauth2Login(oauth2 -> oauth2.successHandler(oAuth2SuccessHandler));
