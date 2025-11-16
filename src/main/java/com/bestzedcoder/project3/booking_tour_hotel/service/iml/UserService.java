@@ -170,7 +170,6 @@ public class UserService implements IUserService {
   }
 
   @Override
-  @Transactional
   public ApiResponse<?> deleteUserById(Long id) {
     this.userRepository.deleteById(id);
     return ApiResponse.builder().success(true).message("Delete user success").build();

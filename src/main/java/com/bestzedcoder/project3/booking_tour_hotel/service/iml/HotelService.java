@@ -28,10 +28,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -55,7 +53,7 @@ public class HotelService implements IHotelService {
   public ApiResponse<?> create(HotelCreatingRequest hotelCreatingRequest, MultipartFile[] images) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     User owner = (User) authentication.getPrincipal();
-    Set<ImageHotel> imageHotels = new HashSet<>();
+    List<ImageHotel> imageHotels = new ArrayList<>();
     Hotel hotel = new Hotel();
     if(images != null) {
       for (MultipartFile image: images) {
@@ -209,6 +207,9 @@ public class HotelService implements IHotelService {
   @Override
   public ApiResponse<?> deleteHotel(Long hotelId) {
     Hotel hotel = this.hotelRepository.findById(hotelId).orElseThrow(() -> new ResourceNotFoundException("Hotel not found"));
+    for (ImageHotel imageHotel : hotel.getImages()) {
+      this.cloudinaryService.deleteImage(imageHotel.getPublicId());
+    }
     User owner = hotel.getOwner();
     owner.getHotels().remove(hotel);
     this.userRepository.save(owner);
@@ -248,7 +249,7 @@ public class HotelService implements IHotelService {
     if (!owner.getId().equals(hotel.getOwner().getId())) {
       throw new BadRequestException("Error: You are not the owner of this hotel");
     }
-    Set<ImageHotel> imageHotels = hotel.getImages();
+    List<ImageHotel> imageHotels = hotel.getImages();
     if (hotelUpdatingRequest.getImagesOld().length < imageHotels.size()) {
       List<ImageHotel> imagesDelete = imageHotels.stream()
           .filter(img -> Arrays.stream(hotelUpdatingRequest.getImagesOld())
@@ -281,7 +282,7 @@ public class HotelService implements IHotelService {
 
   @Override
   public ApiResponse<?> infoHotelDetails(Long hotelId) {
-    String key = String.format("search:hotel:details:%s", hotelId);
+    String key = String.format("search:hotel:info:%s", hotelId);
     ApiResponse<InfoHotelDetails> cacheData = this.redisService.getValue(key, new TypeReference<ApiResponse<InfoHotelDetails>>() {});
     if(cacheData != null) {
       return cacheData;

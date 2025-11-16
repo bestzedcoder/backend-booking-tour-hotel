@@ -14,10 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -45,7 +42,7 @@ public class Hotel extends BaseEntity {
   private String hotel_description;
 
   @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, orphanRemoval = true)
-  private Set<ImageHotel> images = new HashSet<>();
+  private List<ImageHotel> images = new ArrayList<>();
 
   @ManyToOne
   @JoinColumn(name = "owner_id")

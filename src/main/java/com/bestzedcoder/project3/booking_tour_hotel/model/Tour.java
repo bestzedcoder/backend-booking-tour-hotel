@@ -1,12 +1,16 @@
 package com.bestzedcoder.project3.booking_tour_hotel.model;
 
 import com.bestzedcoder.project3.booking_tour_hotel.common.BaseEntity;
+import com.bestzedcoder.project3.booking_tour_hotel.event.TourEvent;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,21 +26,27 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@EntityListeners(TourEvent.class)
 @Table(name = "_tour")
 public class Tour extends BaseEntity {
   @Column(nullable = false, length = 150)
   private String name;
 
+  @Column(nullable = false)
+  private String city;
+
   @Column(columnDefinition = "TEXT")
   private String description;
 
-  @Column(nullable = false, precision = 15, scale = 2)
-  private BigDecimal price;
+  @Column(nullable = false)
+  private Double price;
 
   @Column(name = "start_date", nullable = false)
+  @JsonFormat(pattern = "yyyy-MM-dd")
   private LocalDate startDate;
 
   @Column(name = "end_date", nullable = false)
+  @JsonFormat(pattern = "yyyy-MM-dd")
   private LocalDate endDate;
 
   @Column(nullable = false)
@@ -50,4 +60,8 @@ public class Tour extends BaseEntity {
 
   @OneToMany(mappedBy = "tour" , cascade = CascadeType.ALL, orphanRemoval = true)
   private List<ImageTour> images = new ArrayList<>();
+
+  @ManyToOne
+  @JoinColumn(name = "owner_id")
+  private User owner;
 }

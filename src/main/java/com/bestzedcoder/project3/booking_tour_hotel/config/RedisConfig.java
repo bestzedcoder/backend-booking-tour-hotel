@@ -42,7 +42,7 @@ public class RedisConfig {
   }
 
   @Bean
-  public ObjectMapper objectMapper() {
+  public ObjectMapper redisObjectMapper() {
     // convert : [2025, 10, 16, 22, 35, 0] => "2025-10-16T22:35:00"
     ObjectMapper mapper = new ObjectMapper();
     SimpleModule module = new SimpleModule();

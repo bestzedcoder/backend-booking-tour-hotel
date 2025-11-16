@@ -74,6 +74,11 @@ public class User extends BaseEntity implements UserDetails  {
   private List<Hotel> hotels = new ArrayList<>();
 
 
+  @OneToMany(mappedBy = "owner" , fetch = FetchType.EAGER , cascade = CascadeType.ALL , orphanRemoval = true)
+  @JsonIgnore
+  private List<Tour> tours = new ArrayList<>();
+
+
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
     return this.roles.stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(

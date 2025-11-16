@@ -18,7 +18,7 @@ public class UserEvent {
   @PostUpdate
   @PostPersist
   public void onUserCreatedOrUpdated(User user) {
-    log.info("User updated/created/deleted: {} - clearing user cache...", user.getId());
+    log.info("User updated/created: {} - clearing user cache...", user.getId());
     this.redisService.deleteByPattern("search:users:*");
   }
   @PostRemove
