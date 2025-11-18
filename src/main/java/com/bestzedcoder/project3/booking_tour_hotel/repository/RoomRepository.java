@@ -20,4 +20,6 @@ public interface RoomRepository extends JpaRepository<Room , Long> {
       @Param("pricePerHour") Double pricePerHour,
       @Param("status") RoomStatus status
   );
+
+  Room findByRoomName(String roomName);
 }

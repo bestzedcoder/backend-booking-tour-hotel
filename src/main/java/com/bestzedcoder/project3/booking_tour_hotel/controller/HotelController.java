@@ -85,7 +85,7 @@ public class HotelController {
           )
       }
   )
-  public ResponseEntity<PageResponse<?>> getHotelsByOwnerId(
+  public ResponseEntity<PageResponse<?>> getHotelsByOwner(
       @RequestParam(defaultValue = "1") int page,
       @RequestParam(defaultValue = "10") int limit,
       @RequestParam(defaultValue = "") String hotelName,
