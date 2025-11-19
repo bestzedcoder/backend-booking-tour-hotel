@@ -6,8 +6,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,11 +21,11 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-//@Entity
-//@Table(name = "_payment")
+@Entity
+@Table(name = "_payment")
 public class Payment extends BaseEntity {
-  @OneToOne
-  @JoinColumn(name = "booking_id")
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "booking_id" , nullable = false)
   private Booking booking;
 
   @Column(name = "payment_amount")
@@ -33,4 +34,19 @@ public class Payment extends BaseEntity {
   @Column(name = "payment_status")
   @Enumerated(EnumType.STRING)
   private PaymentStatus status;
+
+  @Column(name = "transaction_no")
+  private String transactionNo;        // vnp_TransactionNo
+
+  @Column(name = "bank_code")
+  private String bankCode;
+
+  @Column(name = "pay_date")
+  private String payDate;              // vnp_PayDate
+
+  @Column(name = "order_info")
+  private String orderInfo;
+
+  @Column(name = "payment_url", columnDefinition = "TEXT")
+  private String paymentUrl;
 }
