@@ -27,7 +27,6 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @Table(name = "_hotel_booking")
 public class HotelBooking extends BaseEntity {
-
   @OneToOne
   @JoinColumn(name = "booking_id")
   private Booking booking;
@@ -62,6 +61,7 @@ public class HotelBooking extends BaseEntity {
 
   @Column(nullable = false)
   private LocalDate checkIn;
+
   @Column(nullable = false)
   private LocalDate checkOut;
 }

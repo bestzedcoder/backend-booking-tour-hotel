@@ -4,9 +4,11 @@ import com.bestzedcoder.project3.booking_tour_hotel.common.BaseEntity;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingStatus;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingType;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.PaymentMethod;
+import com.bestzedcoder.project3.booking_tour_hotel.event.BookingEvent;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -26,9 +28,10 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Entity
 @Table(name = "_booking")
+@EntityListeners(BookingEvent.class)
 public class Booking extends BaseEntity {
-  @Column(unique = true, nullable = false)
-  private String booking_code;
+  @Column(name = "booking_code",unique = true, nullable = false)
+  private String bookingCode;
 
   @Column(name = "booking_type",nullable = false)
   @Enumerated(EnumType.STRING)
@@ -49,4 +52,7 @@ public class Booking extends BaseEntity {
   @JoinColumn(name = "user_id")
   @JsonIgnore
   private User user;
+
+  @Column(nullable = false , name = "owner_id")
+  private Long owner;
 }

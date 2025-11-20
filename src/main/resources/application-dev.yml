@@ -21,6 +21,7 @@ application:
     secretKey: ${JWT_SECRET_KEY}
     accessExpiration: ${JWT_ACCESS_EXPIRATION}
     refreshExpiration: ${JWT_REFRESH_EXPIRATION}
+    secretKeyMAC: ${SECRET_KEY_MAC}
 
 cloudinary:
   cloud-name: ${CLOUDINARY_NAME}

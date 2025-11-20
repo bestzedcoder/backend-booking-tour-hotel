@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hóa đơn Đặt phòng Khách sạn</title>
+  <style>
+    body { font-family: 'Arial', sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9; }
+    .container { max-width: 700px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .header { text-align: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px; }
+    .header h1 { color: #007bff; margin: 0; font-size: 24px; }
+    .details table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .details th, .details td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+    .details th { background-color: #f8f9fa; width: 40%; }
+    .qr-section { text-align: center; margin: 30px 0; padding: 15px; border: 1px dashed #007bff; border-radius: 5px; }
+    .qr-section p { font-size: 14px; color: #555; }
+    .qr-section img { max-width: 150px; height: auto; }
+    .summary { text-align: right; margin-top: 20px; }
+    .summary table { width: 100%; }
+    .summary th, .summary td { padding: 8px 0; }
+    .summary .total { font-size: 18px; font-weight: bold; color: #dc3545; border-top: 2px solid #333; }
+    .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #888; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>HÓA ĐƠN ĐẶT PHÒNG KHÁCH SẠN</h1>
+    <p>Mã đặt chỗ: <strong th:text="${bookingCode}">ABC123456</strong></p>
+  </div>
+
+  <div class="qr-section">
+    <p><strong>MÃ XÁC NHẬN (QUÉT NHANH CHECK-IN)</strong></p>
+    <img th:src="${qrCodeImageSource}" alt="QR Code Xác nhận" />
+    <p>Mã xác thực (MAC Data): <span th:text="${macData}">Mã_MAC_Hash</span></p>
+  </div>
+
+  <h2>Chi tiết Đặt phòng</h2>
+  <div class="details">
+    <table>
+      <tr><th>Tên Khách sạn</th><td th:text="${hotelName}">Tên Khách sạn</td></tr>
+      <tr><th>Địa chỉ</th><td th:text="${address}">Địa chỉ Khách sạn</td></tr>
+      <tr><th>Hạng Sao</th><td th:text="${hotelStar}">Hạng Sao</td></tr>
+      <tr><th>Phòng</th><td><span th:text="${roomName}">Tên Phòng</span> (<span th:text="${roomType}">Loại Phòng</span>)</td></tr>
+      <tr><th>Trạng thái</th><td><strong style="color: green;" th:text="${status}">SUCCESS</strong></td></tr>
+    </table>
+  </div>
+
+  <h2>Thời gian & Giá cả</h2>
+  <div class="details">
+    <table>
+      <tr><th>Ngày nhận phòng</th><td th:text="${checkIn}">2025-01-01</td></tr>
+      <tr><th>Ngày trả phòng</th><td th:text="${checkOut}">2025-01-03</td></tr>
+      <tr><th>Thời gian</th><td th:text="${duration}">2 ngày</td></tr>
+      <tr><th>Phương thức TT</th><td th:text="${paymentMethod}">CHUYỂN KHOẢN</td></tr>
+    </table>
+  </div>
+
+  <div class="summary">
+    <table>
+      <tr><th class="total">TỔNG CỘNG ĐÃ THANH TOÁN</th><td class="total"><span th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT')}">11,000,000</span> VNĐ</td></tr>
+    </table>
+  </div>
+
+  <div class="footer">
+    Cảm ơn quý khách đã sử dụng dịch vụ. Vui lòng giữ mã QR này để xác minh.
+  </div>
+</div>
+</body>
+</html>

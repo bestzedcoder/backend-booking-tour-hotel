@@ -4,7 +4,9 @@ import com.bestzedcoder.project3.booking_tour_hotel.common.VNPayUtils;
 import com.bestzedcoder.project3.booking_tour_hotel.config.VNPayConfig;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingStatus;
+import com.bestzedcoder.project3.booking_tour_hotel.enums.PaymentMethod;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.PaymentStatus;
+import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestException;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.ResourceNotFoundException;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Booking;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Payment;
@@ -29,6 +31,9 @@ public class PaymentService implements IPaymentService {
   @Override
   public ApiResponse<?> createPayment(Long bookingId, HttpServletRequest request) {
     Booking booking = this.bookingRepository.findById(bookingId).orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
+    if(booking.getPaymentMethod().equals(PaymentMethod.CASH)) {
+      throw new BadRequestException("Thanh toán bằng tiền mặt");
+    }
     Payment payment = Payment.builder()
         .booking(booking)
         .amount(booking.getTotalPrice())
@@ -37,12 +42,12 @@ public class PaymentService implements IPaymentService {
 
     Map<String, String> params = vnPayConfig.getVNPayConfig(request);
     params.put("vnp_Amount", String.valueOf(payment.getAmount().intValue() * 100));
-    params.put("vnp_OrderInfo", "Thanh toan don hang " + booking.getBooking_code());
+    params.put("vnp_OrderInfo", "Thanh toan don hang " + booking.getBookingCode());
     String paymentUrl = this.vnPayUtils.buildPaymentUrl(params, true);
     String hashData = this.vnPayUtils.buildPaymentUrl(params, false);
     String hashSecret = this.vnPayUtils.hmacSHA512(hashData);
     paymentUrl = this.vnpBaseUrl+ "?" + paymentUrl + "&vnp_SecureHash=" + hashSecret;
-    payment.setTransactionNo(booking.getBooking_code());
+    payment.setTransactionNo(booking.getBookingCode());
     payment.setPaymentUrl(paymentUrl);
     paymentRepository.save(payment);
     return ApiResponse.builder()
@@ -80,7 +85,7 @@ public class PaymentService implements IPaymentService {
     return ApiResponse.builder()
         .success(true)
         .data(payment)
-        .message(payment.getStatus().equals(BookingStatus.CONFIRMED) ? "Payment success" : "Payment failed")
+        .message(payment.getStatus().equals(PaymentStatus.SUCCESS) ? "Payment success" : "Payment failed")
         .build();
   }
 }
