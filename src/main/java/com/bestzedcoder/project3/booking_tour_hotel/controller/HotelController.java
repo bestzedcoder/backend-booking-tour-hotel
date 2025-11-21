@@ -199,6 +199,14 @@ public class HotelController {
     return ResponseEntity.ok(response);
   }
 
+
+  @GetMapping("/{hotelId}/room/{roomId}")
+  @Operation(summary = "Lấy thông tin booking theo roomId và hotelId")
+  public ResponseEntity<ApiResponse<?>> getInfoBooking(@PathVariable("hotelId") Long hotelId,@PathVariable("roomId") Long roomId) {
+    ApiResponse<?> response = this.hotelService.infoBooking(hotelId , roomId);
+    return ResponseEntity.ok(response);
+  }
+
   @PostMapping("/{hotelId}/rooms")
   @PreAuthorize("hasRole('BUSINESS')")
   @Operation(

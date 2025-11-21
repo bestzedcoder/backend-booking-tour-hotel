@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -100,12 +99,8 @@ public class TourController {
       @Parameter(description = "ID lịch trình", required = true)
       @PathVariable("scheduleId") Long scheduleId,
 
-      @RequestBody(
-          description = "Thông tin cập nhật lịch trình",
-          required = true,
-          content = @Content(schema = @Schema(implementation = TourScheduleUpdatingRequest.class))
-      )
-      @Valid TourScheduleUpdatingRequest tourScheduleUpdatingRequest
+
+      @RequestBody @Valid TourScheduleUpdatingRequest tourScheduleUpdatingRequest
   ) {
     ApiResponse<?> response = this.tourService.updateTourSchedule(tourId, scheduleId, tourScheduleUpdatingRequest);
     return ResponseEntity.status(HttpStatus.OK).body(response);

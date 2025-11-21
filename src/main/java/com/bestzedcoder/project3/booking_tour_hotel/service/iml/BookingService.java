@@ -76,9 +76,9 @@ public class BookingService implements IBookingService {
     booking = this.bookingRepository.save(booking);
     HotelBooking hotelBooking = new HotelBooking();
     hotelBooking.setBookingRoomType(request.getBookingType());
-    hotelBooking.setHotelName(hotel.getHotel_name());
-    hotelBooking.setHotelStar(hotel.getHotel_star());
-    hotelBooking.setAddress(hotel.getHotel_address());
+    hotelBooking.setHotelName(hotel.getHotelName());
+    hotelBooking.setHotelStar(hotel.getHotelStar());
+    hotelBooking.setAddress(hotel.getHotelAddress());
     hotelBooking.setCheckIn(request.getCheckIn());
     hotelBooking.setCheckOut(request.getCheckOut());
     hotelBooking.setDuration(request.getDuration());

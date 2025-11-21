@@ -30,16 +30,18 @@ import lombok.experimental.SuperBuilder;
 @Table(name = "_hotel")
 @EntityListeners(HotelEvent.class)
 public class Hotel extends BaseEntity {
-  @Column(nullable = false)
-  private String hotel_name;
-  @Column(nullable = false)
-  private String hotel_address;
-  @Column(nullable = false)
-  private String hotel_city;
+  @Column(nullable = false, name = "hotel_name")
+  private String hotelName;
+  @Column(nullable = false , name = "hotel_address")
+  private String hotelAddress;
+  @Column(nullable = false , name = "hotel_city")
+  private String hotelCity;
   @Enumerated(EnumType.STRING)
-  private HotelStar hotel_star;
+  @Column(name = "hotel_star" , nullable = false)
+  private HotelStar hotelStar;
 
-  private String hotel_description;
+  @Column(nullable = false , name = "hotel_description")
+  private String hotelDescription;
 
   @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<ImageHotel> images = new ArrayList<>();

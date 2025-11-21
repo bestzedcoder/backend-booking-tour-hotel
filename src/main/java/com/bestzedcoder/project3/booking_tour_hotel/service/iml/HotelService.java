@@ -64,11 +64,11 @@ public class HotelService implements IHotelService {
     }
     hotel.setOwner(owner);
     hotel.setImages(imageHotels);
-    hotel.setHotel_name(hotelCreatingRequest.getHotelName());
-    hotel.setHotel_address(hotelCreatingRequest.getHotelAddress());
-    hotel.setHotel_city(hotelCreatingRequest.getHotelCity());
-    hotel.setHotel_description(hotelCreatingRequest.getHotelDescription());
-    hotel.setHotel_star(hotelCreatingRequest.getHotelStar());
+    hotel.setHotelName(hotelCreatingRequest.getHotelName());
+    hotel.setHotelAddress(hotelCreatingRequest.getHotelAddress());
+    hotel.setHotelCity(hotelCreatingRequest.getHotelCity());
+    hotel.setHotelDescription(hotelCreatingRequest.getHotelDescription());
+    hotel.setHotelStar(hotelCreatingRequest.getHotelStar());
     owner.getHotels().add(hotel);
     this.userRepository.save(owner);
     return ApiResponse.builder().success(true).message("Created hotel successfully.").build();
@@ -269,11 +269,11 @@ public class HotelService implements IHotelService {
       }
     }
 
-    hotel.setHotel_description(hotelUpdatingRequest.getHotelDescription());
-    hotel.setHotel_address(hotelUpdatingRequest.getHotelAddress());
-    hotel.setHotel_city(hotelUpdatingRequest.getHotelCity());
-    hotel.setHotel_name(hotelUpdatingRequest.getHotelName());
-    hotel.setHotel_star(hotelUpdatingRequest.getHotelStar());
+    hotel.setHotelDescription(hotelUpdatingRequest.getHotelDescription());
+    hotel.setHotelAddress(hotelUpdatingRequest.getHotelAddress());
+    hotel.setHotelCity(hotelUpdatingRequest.getHotelCity());
+    hotel.setHotelName(hotelUpdatingRequest.getHotelName());
+    hotel.setHotelStar(hotelUpdatingRequest.getHotelStar());
 
     this.hotelRepository.save(hotel);
 
@@ -295,5 +295,12 @@ public class HotelService implements IHotelService {
         .build();
     this.redisService.saveKeyAndValue(key , response , "2" , TimeUnit.MINUTES);
     return response;
+  }
+
+  @Override
+  public ApiResponse<?> infoBooking(Long hotelId, Long roomId) {
+    Hotel hotel = this.hotelRepository.findById(hotelId).orElseThrow(() -> new ResourceNotFoundException("Hotel not found"));
+    Room room = this.roomRepository.findById(roomId).orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+    return ApiResponse.builder().success(true).message("Info booking").data(HotelMapper.hotelToHotelAndRoomDetailsBooking(hotel,room)).build();
   }
 }

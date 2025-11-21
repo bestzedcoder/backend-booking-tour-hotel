@@ -25,4 +25,5 @@ public interface IHotelService {
   ApiResponse<?> updateRoom(Long hotelId,Long roomId, RoomUpdatingRequest roomUpdatingRequest);
   ApiResponse<?> updateHotel(Long hotelId, HotelUpdatingRequest hotelUpdatingRequest, MultipartFile[] images);
   ApiResponse<?> infoHotelDetails(Long hotelId);
+  ApiResponse<?> infoBooking(Long hotelId, Long roomId);
 }

@@ -1,6 +1,5 @@
 package com.bestzedcoder.project3.booking_tour_hotel.mapper;
 
-import com.bestzedcoder.project3.booking_tour_hotel.dto.response.InfoHotelDetails;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.InfoTourDetails;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.TourResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.TourScheduleResponse;
@@ -70,4 +69,5 @@ public class TourMapper {
     infoTourDetails.setOwner(ownerInfo);
     return infoTourDetails;
   }
+
 }

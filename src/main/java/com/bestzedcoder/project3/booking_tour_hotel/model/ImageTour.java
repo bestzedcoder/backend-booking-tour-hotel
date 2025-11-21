@@ -27,7 +27,7 @@ public class ImageTour {
   private Long id;
 
   private String url;
-  private String public_id;
+  private String publicId;
 
   @ManyToOne
   @JoinColumn(name = "tour_id")

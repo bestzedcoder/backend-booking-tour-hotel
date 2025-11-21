@@ -72,7 +72,7 @@ public class TourService implements ITourService {
       ImageTour imageTour = new ImageTour();
       Map<String , String> res = this.cloudinaryService.validationAndUpload(image , "tour");
       imageTour.setUrl(res.get("url"));
-      imageTour.setPublic_id(res.get("public_id"));
+      imageTour.setPublicId(res.get("public_id"));
       imageTour.setTour(newTour);
       imageTours.add(imageTour);
     }
@@ -106,7 +106,7 @@ public class TourService implements ITourService {
               .noneMatch(url -> url.equals(img.getUrl())))
           .toList();
       for (ImageTour imageTour : imagesDelete) {
-        this.cloudinaryService.deleteImage(imageTour.getPublic_id());
+        this.cloudinaryService.deleteImage(imageTour.getPublicId());
         tour.getImages().remove(imageTour);
       }
     }
@@ -114,11 +114,13 @@ public class TourService implements ITourService {
     if (imageNews != null) {
       for(MultipartFile file : imageNews) {
         Map<String , String> res = this.cloudinaryService.validationAndUpload(file,"tour");
-        ImageTour imageTour = ImageTour.builder().url(res.get("url")).public_id(res.get("public_id")).tour(tour).build();
+        ImageTour imageTour = ImageTour.builder().url(res.get("url")).publicId(res.get("public_id")).tour(tour).build();
         tour.getImages().add(imageTour);
       }
     }
     this.tourRepository.save(tour);
+    this.redisService.deleteByPattern("search:tour:info:*");
+    this.redisService.deleteByPattern("search:tour:details:*");
     return ApiResponse.builder().success(true).message("Updated successfully.").build();
   }
 
@@ -133,6 +135,8 @@ public class TourService implements ITourService {
     tourSchedule.setDescription(tourScheduleUpdatingRequest.getDescription());
     tourSchedule.setTitle(tourScheduleUpdatingRequest.getTitle());
     this.tourRepository.save(tour);
+    this.redisService.deleteByPattern("search:tour:info:*");
+    this.redisService.deleteByPattern("search:tour:details:*");
     return ApiResponse.builder().success(true).message("Updated successfully.").build();
   }
 
@@ -383,7 +387,7 @@ public class TourService implements ITourService {
     Tour tour = this.tourRepository.findById(tourId).orElseThrow(() -> new ResourceNotFoundException("Tour not found"));
     List<ImageTour> imageTours = tour.getImages();
     for (ImageTour imageTour : imageTours) {
-      this.cloudinaryService.deleteImage(imageTour.getPublic_id());
+      this.cloudinaryService.deleteImage(imageTour.getPublicId());
     }
     User owner = tour.getOwner();
     owner.getTours().remove(tour);

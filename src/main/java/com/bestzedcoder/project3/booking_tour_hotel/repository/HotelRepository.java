@@ -16,9 +16,9 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
         SELECT h
         FROM Hotel h
         WHERE
-            (:hotelName IS NULL OR LOWER(h.hotel_name) LIKE LOWER(CONCAT('%', :hotelName, '%')))
-        AND (:city IS NULL OR LOWER(h.hotel_city) LIKE LOWER(CONCAT('%', :city, '%')))
-        AND (:hotelStar IS NULL OR h.hotel_star = :hotelStar)
+            (:hotelName IS NULL OR LOWER(h.hotelName) LIKE LOWER(CONCAT('%', :hotelName, '%')))
+        AND (:city IS NULL OR LOWER(h.hotelCity) LIKE LOWER(CONCAT('%', :city, '%')))
+        AND (:hotelStar IS NULL OR h.hotelStar = :hotelStar)
     """)
   Page<Hotel> searchHotels(
       @Param("hotelName") String hotelName,
@@ -33,9 +33,9 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
     FROM Hotel h
     WHERE
         h.owner.id = :ownerId
-        AND (:hotelName IS NULL OR LOWER(h.hotel_name) LIKE LOWER(CONCAT('%', :hotelName, '%')))
-        AND (:city IS NULL OR LOWER(h.hotel_city) LIKE LOWER(CONCAT('%', :city, '%')))
-        AND (:hotelStar IS NULL OR h.hotel_star = :hotelStar)
+        AND (:hotelName IS NULL OR LOWER(h.hotelName) LIKE LOWER(CONCAT('%', :hotelName, '%')))
+        AND (:city IS NULL OR LOWER(h.hotelCity) LIKE LOWER(CONCAT('%', :city, '%')))
+        AND (:hotelStar IS NULL OR h.hotelStar = :hotelStar)
 """)
   Page<Hotel> searchHotelsByOwnerId(
       @Param("ownerId") Long ownerId,
