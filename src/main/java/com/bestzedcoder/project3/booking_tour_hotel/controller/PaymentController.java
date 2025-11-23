@@ -3,6 +3,8 @@ package com.bestzedcoder.project3.booking_tour_hotel.controller;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IPaymentService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +31,8 @@ public class PaymentController {
   }
 
   @GetMapping("/vn-pay-callback")
-  public ResponseEntity<ApiResponse<?>> callback(HttpServletRequest request) {
+  public void callback(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
 
     Map<String, String> vnPayResponse = request.getParameterMap()
         .entrySet()
@@ -38,8 +41,7 @@ public class PaymentController {
             Map.Entry::getKey,
             e -> e.getValue()[0]
         ));
-
-    ApiResponse<?> response = this.paymentService.handleVNPayCallback(vnPayResponse);
-    return ResponseEntity.ok(response);
+    String url = this.paymentService.handleVNPayCallback(vnPayResponse);
+    response.sendRedirect(url);
   }
 }

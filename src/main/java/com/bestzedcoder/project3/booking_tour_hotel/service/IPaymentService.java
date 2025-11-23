@@ -6,5 +6,5 @@ import java.util.Map;
 
 public interface IPaymentService {
   ApiResponse<?> createPayment(Long bookingId, HttpServletRequest request);
-  ApiResponse<?> handleVNPayCallback(Map<String, String> vnPayResponse);
+  String handleVNPayCallback(Map<String, String> vnPayResponse);
 }

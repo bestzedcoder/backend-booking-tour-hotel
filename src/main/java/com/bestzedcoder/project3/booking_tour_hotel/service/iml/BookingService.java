@@ -3,6 +3,7 @@ package com.bestzedcoder.project3.booking_tour_hotel.service.iml;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.BookingHotelRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.BookingTourRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
+import com.bestzedcoder.project3.booking_tour_hotel.dto.response.BookingCustomerResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.BookingSearchResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.PageResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingStatus;
@@ -92,8 +93,6 @@ public class BookingService implements IBookingService {
     return ApiResponse.builder().success(true).message("Booked successfully").build();
   }
 
-
-
   private String genBookingCode() {
     int length = 8;
     String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -110,7 +109,7 @@ public class BookingService implements IBookingService {
   public void autoFailExpiredBookings() {
     System.out.println("Auto fail expired bookings");
 
-    LocalDateTime expiredDateTime = LocalDateTime.now().minusDays(2);
+    LocalDateTime expiredDateTime = LocalDateTime.now().minusMinutes(10);
 
 
     List<Booking> bookings = this.bookingRepository
@@ -123,7 +122,6 @@ public class BookingService implements IBookingService {
 
     bookingRepository.saveAll(bookings);
   }
-
 
   @Override
   @Transactional
@@ -139,6 +137,8 @@ public class BookingService implements IBookingService {
     booking.setStatus(BookingStatus.PENDING);
     booking.setBookingCode(this.genBookingCode());
     booking.setPaymentMethod(request.getPaymentMethod());
+    booking.setTotalPrice(request.getPeople() * tour.getPrice());
+    booking.setOwner(tour.getOwner().getId());
     booking.setUser(user);
     booking = this.bookingRepository.save(booking);
     TourBooking tourBooking = new TourBooking();
@@ -197,8 +197,8 @@ public class BookingService implements IBookingService {
   @Override
   public ApiResponse<?> invoice(Long id) {
     Booking booking = this.bookingRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("booking not found"));
-    if (!booking.getStatus().equals(BookingStatus.CONFIRMED)) {
-      throw new BadRequestException("Booking is not confirmed");
+    if (booking.getStatus().equals(BookingStatus.CANCELLED)) {
+      throw new BadRequestException("Booking đã bị hủy");
     }
 
     User customer = booking.getUser();
@@ -289,6 +289,43 @@ public class BookingService implements IBookingService {
     return response;
   }
 
+  @Override
+  public ApiResponse<?> getByCustomer() {
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//    String keyCache = String.format("search:booking:customer:%d", user.getId());
+//    ApiResponse<BookingCustomerResponse<?>>  dataCache = this.redisService.getValue(keyCache,
+//        new TypeReference<ApiResponse<BookingCustomerResponse<?>>>() {});
+//    if (dataCache != null) {
+//      return dataCache;
+//    }
+    List<Booking> bookings = this.bookingRepository.findByUserId(user.getId());
+    ApiResponse<List<BookingCustomerResponse<?>>> response =
+        ApiResponse.<List<BookingCustomerResponse<?>>>builder()
+            .success(true)
+            .message("Search successful")
+            .data(
+                bookings.stream().map(booking -> {
+                  if (booking.getBookingType() == BookingType.HOTEL) {
+                    HotelBooking hotelBooking =
+                        hotelBookingRepository
+                            .findByBookingId(booking.getId())
+                            .orElseThrow(RuntimeException::new);
+
+                    return BookingMapper.toHotelBookingResponse(booking, hotelBooking);
+                  } else {
+                    TourBooking tourBooking =
+                        tourBookingRepository
+                            .findByBookingId(booking.getId())
+                            .orElseThrow(RuntimeException::new);
+
+                    return BookingMapper.toTourBookingResponse(booking, tourBooking);
+                  }
+                }).toList()
+            )
+            .build();
+//    this.redisService.saveKeyAndValue(keyCache , response , "1" , TimeUnit.MINUTES);
+    return response;
+  }
 
   private void handleCancelBooking(Booking booking) {
     switch (booking.getBookingType()) {

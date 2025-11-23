@@ -383,6 +383,16 @@ public class TourService implements ITourService {
   }
 
   @Override
+  public ApiResponse<?> tourBookingInfo(Long tourId) {
+    Tour tour = this.tourRepository.findById(tourId).orElseThrow(() -> new ResourceNotFoundException("Tour not found"));
+    return ApiResponse.builder()
+        .success(true)
+        .data(TourMapper.toInfoTourDetailsBooking(tour))
+        .message("Info tour booking..")
+        .build();
+  }
+
+  @Override
   public ApiResponse<?> deleteTour(Long tourId) {
     Tour tour = this.tourRepository.findById(tourId).orElseThrow(() -> new ResourceNotFoundException("Tour not found"));
     List<ImageTour> imageTours = tour.getImages();

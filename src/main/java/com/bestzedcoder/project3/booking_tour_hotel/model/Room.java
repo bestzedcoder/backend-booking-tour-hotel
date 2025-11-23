@@ -3,7 +3,9 @@ package com.bestzedcoder.project3.booking_tour_hotel.model;
 import com.bestzedcoder.project3.booking_tour_hotel.common.BaseEntity;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.RoomStatus;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.RoomType;
+import com.bestzedcoder.project3.booking_tour_hotel.event.RoomEvent;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
@@ -22,6 +24,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Entity
 @Table(name = "_room")
+@EntityListeners(RoomEvent.class)
 public class Room extends BaseEntity {
   private String roomName;
 

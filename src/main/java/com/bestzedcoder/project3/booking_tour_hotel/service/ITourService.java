@@ -19,5 +19,6 @@ public interface ITourService {
   PageResponse<?> searchByAdmin(TourSearchByAdminParams tourSearchByAdminParams);
   ApiResponse<?> searchTourDetails(Long tourId);
   ApiResponse<?> infoTourDetails(Long tourId);
+  ApiResponse<?> tourBookingInfo(Long tourId);
   ApiResponse<?> deleteTour(Long tourId);
 }

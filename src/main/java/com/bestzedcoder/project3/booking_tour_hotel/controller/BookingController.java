@@ -36,9 +36,6 @@ public class BookingController {
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
-//  @GetMapping
-//  public ResponseEntity<>
-
   @PostMapping("/tour/{tourId}")
   public ResponseEntity<ApiResponse<?>> bookingTour(@PathVariable("tourId") Long tourId, @RequestBody
       BookingTourRequest bookingTourRequest) {
@@ -70,6 +67,14 @@ public class BookingController {
   @GetMapping("/by-admin/business")
   public ResponseEntity<ApiResponse<?>> getByAdminV1(@RequestParam("business") String name) {
     ApiResponse<?> response = this.bookingService.getByAdminV2(name);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
+
+
+
+  @GetMapping("/by-customer")
+  public ResponseEntity<ApiResponse<?>> getByCustomer() {
+    ApiResponse<?> response = this.bookingService.getByCustomer();
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 

@@ -16,4 +16,5 @@ public interface IBookingService {
   ApiResponse<?> deleteBooking(Long id);
   ApiResponse<?> invoice(Long id);
   PageResponse<?> getByAdminV1(int page, int limit, BookingStatus status, String code, String username , PaymentMethod method , BookingType type);
+  ApiResponse<?> getByCustomer();
 }

@@ -11,4 +11,5 @@ public interface BookingRepository extends JpaRepository<Booking, Long> ,
     JpaSpecificationExecutor<Booking> {
   List<Booking> findByStatusAndCreatedAtBefore(BookingStatus status, LocalDateTime createdAt);
   List<Booking> findByOwner(Long owner);
+  List<Booking> findByUserId(Long userId);
 }

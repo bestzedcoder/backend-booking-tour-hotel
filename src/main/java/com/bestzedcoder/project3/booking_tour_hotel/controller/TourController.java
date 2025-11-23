@@ -182,6 +182,14 @@ public class TourController {
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
+
+  @Operation(summary = "Xem thông tin tour để booking", description = "Bao gồm lịch trình, địa điểm...")
+  @GetMapping("/{tourId}/booking-info")
+  public ResponseEntity<ApiResponse<?>> tourBookingInfo(@PathVariable("tourId") Long tourId) {
+    ApiResponse<?> response = this.tourService.tourBookingInfo(tourId);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
+
   // ---------------------------------------------
   // DELETE TOUR
   // ---------------------------------------------

@@ -14,6 +14,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.repository.BookingRepository
 import com.bestzedcoder.project3.booking_tour_hotel.repository.PaymentRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IPaymentService;
 import jakarta.servlet.http.HttpServletRequest;
+import java.security.SecureRandom;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,12 +43,13 @@ public class PaymentService implements IPaymentService {
 
     Map<String, String> params = vnPayConfig.getVNPayConfig(request);
     params.put("vnp_Amount", String.valueOf(payment.getAmount().intValue() * 100));
-    params.put("vnp_OrderInfo", "Thanh toan don hang " + booking.getBookingCode());
+    String invoiceCode =  genInvoiceCode();
+    params.put("vnp_OrderInfo", String.format("Thanh toan don hang voi ma thanh toan : %s" , invoiceCode));
     String paymentUrl = this.vnPayUtils.buildPaymentUrl(params, true);
     String hashData = this.vnPayUtils.buildPaymentUrl(params, false);
     String hashSecret = this.vnPayUtils.hmacSHA512(hashData);
     paymentUrl = this.vnpBaseUrl+ "?" + paymentUrl + "&vnp_SecureHash=" + hashSecret;
-    payment.setTransactionNo(booking.getBookingCode());
+    payment.setTransactionNo(invoiceCode);
     payment.setPaymentUrl(paymentUrl);
     paymentRepository.save(payment);
     return ApiResponse.builder()
@@ -57,11 +59,24 @@ public class PaymentService implements IPaymentService {
         .build();
   }
 
+  private String genInvoiceCode() {
+    int length = 12;
+    String characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    StringBuilder sb = new StringBuilder(length);
+    SecureRandom random = new SecureRandom();
+    for (int i = 0; i < length; i++) {
+      int index = random.nextInt(characters.length());
+      sb.append(characters.charAt(index));
+    }
+    return sb.toString();
+  }
+
   @Override
-  public ApiResponse<?> handleVNPayCallback(Map<String, String> vnPayResponse) {
+  public String handleVNPayCallback(Map<String, String> vnPayResponse) {
     String txnNo = vnPayResponse.get("vnp_TransactionNo");
     String responseCode = vnPayResponse.get("vnp_ResponseCode");
     String info = vnPayResponse.get("vnp_OrderInfo");
+    String resultStatus;
 
     String[] parts = info.trim().split("\\s+");
     String bookingCode = parts[parts.length - 1];
@@ -71,9 +86,11 @@ public class PaymentService implements IPaymentService {
     if ("00".equals(responseCode)) {
       payment.setStatus(PaymentStatus.SUCCESS);
       payment.getBooking().setStatus(BookingStatus.CONFIRMED);
+      resultStatus = "success";
     } else {
       payment.setStatus(PaymentStatus.FAILED);
       payment.getBooking().setStatus(BookingStatus.CANCELLED);
+      resultStatus = "failed";
     }
 
     payment.setBankCode(vnPayResponse.get("vnp_BankCode"));
@@ -82,10 +99,6 @@ public class PaymentService implements IPaymentService {
 
     bookingRepository.save(payment.getBooking());
     paymentRepository.save(payment);
-    return ApiResponse.builder()
-        .success(true)
-        .data(payment)
-        .message(payment.getStatus().equals(PaymentStatus.SUCCESS) ? "Payment success" : "Payment failed")
-        .build();
+    return String.format("http://localhost:5173/payment/result?status=%s&code=%s", resultStatus, txnNo);
   }
 }

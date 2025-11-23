@@ -1,6 +1,7 @@
 package com.bestzedcoder.project3.booking_tour_hotel.mapper;
 
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.InfoTourDetails;
+import com.bestzedcoder.project3.booking_tour_hotel.dto.response.TourDetailsBooking;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.TourResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.TourScheduleResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.TourSearchResponse;
@@ -66,8 +67,22 @@ public class TourMapper {
     InfoTourDetails.InfoOwner ownerInfo = new InfoTourDetails.InfoOwner();
     ownerInfo.setFullName(owner.getProfile().getFullName());
     ownerInfo.setPhoneNumber(owner.getProfile().getPhoneNumber());
+    if (owner.getProfile().getImage() != null) {
+      ownerInfo.setImageUrl(owner.getProfile().getImage().getUrl());
+    }
     infoTourDetails.setOwner(ownerInfo);
     return infoTourDetails;
   }
 
+  public static TourDetailsBooking toInfoTourDetailsBooking(Tour tour) {
+    TourDetailsBooking tourDetailsBooking = new TourDetailsBooking();
+    tourDetailsBooking.setTourId(tour.getId());
+    tourDetailsBooking.setTourName(tour.getName());
+    tourDetailsBooking.setTourCity(tour.getCity());
+    tourDetailsBooking.setPrice(tour.getPrice());
+    tourDetailsBooking.setDuration(tour.getDuration());
+    tourDetailsBooking.setStartDate(tour.getStartDate());
+    tourDetailsBooking.setEndDate(tour.getEndDate());
+    return tourDetailsBooking;
+  }
 }
