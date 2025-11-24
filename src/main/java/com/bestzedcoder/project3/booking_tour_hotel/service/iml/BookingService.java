@@ -35,6 +35,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.service.IBookingService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import jakarta.transaction.Transactional;
 import java.security.SecureRandom;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -156,10 +157,13 @@ public class BookingService implements IBookingService {
   @Override
   public ApiResponse<?> updateStatus(Long id, BookingStatus status) {
     Booking booking = this.bookingRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("booking not found"));
+    if (booking.getStatus().equals(BookingStatus.CANCELLED))
+      throw new BadRequestException("Booking cancelled");
     booking.setStatus(status);
     if(status.equals(BookingStatus.CANCELLED)) {
       handleCancelBooking(booking);
     }
+    this.bookingRepository.save(booking);
     return ApiResponse.builder().success(true).message("Updated status booking successfully").build();
   }
 
@@ -324,6 +328,81 @@ public class BookingService implements IBookingService {
             )
             .build();
 //    this.redisService.saveKeyAndValue(keyCache , response , "1" , TimeUnit.MINUTES);
+    return response;
+  }
+
+  @Override
+  public PageResponse<?> getByBusiness(int page, int limit, BookingType type, BookingStatus status,
+      String code, String username, LocalDate startDate, LocalDate endDate) {
+    User owner = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    String keyCache = String.format("search:booking:owner:%d:page:%d:limit:%d:type:%s:status:%s:code:%s:customer:%s:start:%s:end:%s",
+        owner.getId(),
+        page,
+        limit,
+        type != null ? type : "",
+        status != null ? status : "",
+        code != null ? code : "",
+        username != null ? username : "",
+        startDate != null ? startDate : "",
+        endDate != null ? endDate : ""
+        );
+    PageResponse<BookingSearchResponse> dataCache = this.redisService.getValue(keyCache, new TypeReference<PageResponse<BookingSearchResponse>>() {});
+    if (dataCache != null) {
+      return dataCache;
+    }
+
+    LocalDateTime startDT = (startDate != null) ?
+        startDate.atStartOfDay()
+        : LocalDateTime.of(1970, 1, 1, 0, 0);
+
+    LocalDateTime endDT = (endDate != null) ?
+        endDate.plusDays(1).atStartOfDay()
+        : LocalDateTime.of(9999, 12, 31, 23, 59);
+
+    PageRequest pageable = PageRequest.of(page - 1, limit, Sort.by("createdAt").descending());
+
+    Specification<Booking> spec = Specification.where(
+        (root, query, cb) -> cb.equal(root.get("owner"), owner.getId())
+    );
+
+    if (status != null) {
+      spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), status));
+    }
+
+    if (type != null) {
+      spec = spec.and((root, query, cb) -> cb.equal(root.get("bookingType"), type));
+    }
+
+
+    if (code != null && !code.isEmpty()) {
+      spec = spec.and((root, query, cb) ->
+          cb.like(cb.lower(root.get("bookingCode")), "%" + code.toLowerCase() + "%"));
+    }
+
+    if (username != null && !username.isEmpty()) {
+      spec = spec.and((root, query, cb) ->
+          cb.like(cb.lower(root.get("user").get("username")), "%" + username.toLowerCase() + "%"));
+    }
+
+    // ⭐ Điều kiện createdAt FROM–TO
+    spec = spec.and((root, query, cb) ->
+        cb.between(root.get("createdAt"), startDT, endDT)
+    );
+
+    Page<Booking> pageResult = bookingRepository.findAll(spec, pageable);
+
+    PageResponse<BookingSearchResponse> response = PageResponse.<BookingSearchResponse>builder()
+        .success(true)
+        .message("Search successful")
+        .currentPages(page)
+        .pageSizes(limit)
+        .totalElements(pageResult.getTotalElements())
+        .totalPages(pageResult.getTotalPages())
+        .result(pageResult.getContent().stream().map(BookingMapper::bookingToBookingSearchResponse).toList())
+        .build();
+
+    redisService.saveKeyAndValue(keyCache, response, "1", TimeUnit.MINUTES);
+
     return response;
   }
 

@@ -2,12 +2,14 @@ package com.bestzedcoder.project3.booking_tour_hotel.controller;
 
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.BookingHotelRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.BookingTourRequest;
+import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.BookingUpdatingRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.PageResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingStatus;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingType;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.PaymentMethod;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IBookingService;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,8 +47,8 @@ public class BookingController {
 
   @PutMapping("/update-status/{bookingId}")
   @PreAuthorize("hasRole('BUSINESS')")
-  public ResponseEntity<ApiResponse<?>> updateBookingStatus(@RequestPart("status") BookingStatus status, @PathVariable Long bookingId) {
-    ApiResponse<?> response = this.bookingService.updateStatus(bookingId , status);
+  public ResponseEntity<ApiResponse<?>> updateBookingStatus(@RequestBody BookingUpdatingRequest request, @PathVariable Long bookingId) {
+    ApiResponse<?> response = this.bookingService.updateStatus(bookingId , request.getStatus());
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
@@ -70,7 +72,20 @@ public class BookingController {
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
-
+  @GetMapping("/by-business")
+  public ResponseEntity<PageResponse<?>> getByBusiness(
+      @RequestParam(value = "page" , defaultValue = "1") int page,
+      @RequestParam(value = "limit" , defaultValue = "10") int limit,
+      @RequestParam(value = "type", required = false) BookingType type,
+      @RequestParam(value = "status" , required = false) BookingStatus status,
+      @RequestParam(value = "customer" , required = false) String customer,
+      @RequestParam(value = "code" , required = false) String code,
+      @RequestParam(value = "start_date" , required = false) LocalDate startDate,
+      @RequestParam(value = "end_date" , required = false) LocalDate endDate
+  ) {
+    PageResponse<?> response = this.bookingService.getByBusiness(page , limit , type , status , code , customer , startDate , endDate);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
 
   @GetMapping("/by-customer")
   public ResponseEntity<ApiResponse<?>> getByCustomer() {

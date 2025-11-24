@@ -38,3 +38,17 @@ payment:
     version: ${VERSION}
     command: ${COMMAND}
     orderType: ${ORDER_TYPE}
+
+# logging
+#  logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+logging:
+  level:
+    org:
+      hibernate:
+        type:
+          descriptor:
+            sql:
+              BasicExtractor: TRACE
+              BasicBinder: TRACE
+
+#  logging.level.org.hibernate.type.descriptor.sql.BasicExtractor=TRACE
