@@ -44,4 +44,6 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
       @Param("hotelStar") HotelStar hotelStar,
       Pageable pageable
   );
+
+  Long countHotelsByOwnerId(Long ownerId);
 }

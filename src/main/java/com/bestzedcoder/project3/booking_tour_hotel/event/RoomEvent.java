@@ -20,6 +20,6 @@ public class RoomEvent {
   @PostRemove
   public void onHotelChanged(Room room) {
     log.info("Room updated/created/deleted: {} - clearing hotel cache...", room.getId());
-    this.redisService.deleteByPattern("search:tour:info:*");
+    this.redisService.deleteByPattern("search:hotel:info:*");
   }
 }

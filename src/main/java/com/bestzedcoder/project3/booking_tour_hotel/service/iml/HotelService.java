@@ -223,17 +223,13 @@ public class HotelService implements IHotelService {
       throw new ResourceNotFoundException("Hotel not found");
     }
 
-    int updated = this.roomRepository.updateRoomByHotelId(
-        hotelId,
-        roomId,
-        request.getPricePerDay(),
-        request.getPricePerHour(),
-        request.getRoomStatus()
-    );
+    Room room = this.roomRepository.findById(roomId).orElseThrow(() -> new ResourceNotFoundException("Room not found"));
 
-    if (updated == 0) {
-      throw new ResourceNotFoundException("Room not found for this hotel");
-    }
+    room.setStatus(request.getRoomStatus());
+    room.setPricePerDay(request.getPricePerDay());
+    room.setPricePerHour(request.getPricePerHour());
+
+    this.roomRepository.save(room);
 
     return ApiResponse.builder()
         .success(true)
@@ -293,7 +289,7 @@ public class HotelService implements IHotelService {
         .data(HotelMapper.hotelToHotelDetails(hotel))
         .message("Successfully get hotel details")
         .build();
-    this.redisService.saveKeyAndValue(key , response , "2" , TimeUnit.MINUTES);
+    this.redisService.saveKeyAndValue(key , response , "1" , TimeUnit.MINUTES);
     return response;
   }
 

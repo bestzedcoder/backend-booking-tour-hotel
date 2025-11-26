@@ -10,16 +10,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface RoomRepository extends JpaRepository<Room , Long> {
-  @Modifying
-  @Transactional
-  @Query("UPDATE Room r SET r.pricePerDay = :pricePerDay, r.pricePerHour = :pricePerHour, r.status = :status WHERE r.id = :roomId AND r.hotel.id = :hotelId")
-  int updateRoomByHotelId(
-      @Param("hotelId") Long hotelId,
-      @Param("roomId") Long roomId,
-      @Param("pricePerDay") Double pricePerDay,
-      @Param("pricePerHour") Double pricePerHour,
-      @Param("status") RoomStatus status
-  );
+//  @Modifying
+//  @Transactional
+//  @Query("UPDATE Room r SET r.pricePerDay = :pricePerDay, r.pricePerHour = :pricePerHour, r.status = :status WHERE r.id = :roomId AND r.hotel.id = :hotelId")
+//  int updateRoomByHotelId(
+//      @Param("hotelId") Long hotelId,
+//      @Param("roomId") Long roomId,
+//      @Param("pricePerDay") Double pricePerDay,
+//      @Param("pricePerHour") Double pricePerHour,
+//      @Param("status") RoomStatus status
+//  );
 
   Room findByRoomName(String roomName);
 }
