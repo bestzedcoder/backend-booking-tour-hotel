@@ -18,6 +18,7 @@ public class BookingMapper {
     bookingSearchResponse.setStatus(booking.getStatus());
     bookingSearchResponse.setPaymentMethod(booking.getPaymentMethod());
     bookingSearchResponse.setPrice(booking.getTotalPrice());
+    bookingSearchResponse.setType(booking.getBookingType());
     return bookingSearchResponse;
   }
 

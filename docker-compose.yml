@@ -1,0 +1,71 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database Service
+  db:
+    image: postgres:16-alpine # Sử dụng image nhỏ hơn và phiên bản cụ thể
+    container_name: booking_db
+    environment:
+      # Lấy biến môi trường từ .env
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck: # Thêm Healthcheck để đảm bảo DB sẵn sàng trước khi App kết nối
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Redis Cache Service (Dịch vụ mới được thêm vào)
+  redis:
+    image: redis:7-alpine
+    container_name: booking_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    healthcheck: # Đảm bảo Redis sẵn sàng phục vụ
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+
+  # Spring Boot Application Service
+  app:
+    build: .
+    container_name: booking-app
+    ports:
+      - "8080:8080"
+    env_file: # Sử dụng file .env để bảo mật các biến
+      - .env
+    environment:
+      # Các biến nội bộ có thể giữ lại, nhưng các biến nhạy cảm đã chuyển sang env_file
+      SPRING_SERVER_PORT: 8080
+      # Kết nối DB bằng hostname của service (db)
+      DATABASE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      USER_NAME: ${POSTGRES_USER}
+      PASSWORD: ${POSTGRES_PASSWORD}
+      # Thêm cấu hình Redis cho Spring Boot
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+    depends_on:
+      db:
+        condition: service_healthy # Chỉ khởi động App khi DB đã sẵn sàng (healthy)
+      redis:
+        condition: service_healthy # Chỉ khởi động App khi Redis đã sẵn sàng (healthy)
+    networks:
+      - app-network
+
+volumes:
+  postgres_data: # Định nghĩa volume để lưu trữ dữ liệu DB
+
+networks:
+  app-network:
+    driver: bridge # Định nghĩa mạng nội bộ

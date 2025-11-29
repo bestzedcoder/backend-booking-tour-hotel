@@ -1,6 +1,7 @@
 package com.bestzedcoder.project3.booking_tour_hotel.dto.response;
 
 import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingStatus;
+import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingType;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.PaymentMethod;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,4 +16,5 @@ public class BookingSearchResponse {
   private BookingStatus status;
   private String code;
   private Double price;
+  private BookingType type;
 }
