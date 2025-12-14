@@ -2,13 +2,15 @@ package com.bestzedcoder.project3.booking_tour_hotel.controller;
 
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.*;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
-import com.bestzedcoder.project3.booking_tour_hotel.dto.response.LoginResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.UnauthorizedException;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,9 +27,10 @@ public class AuthController {
 
   @PostMapping("login")
   @Operation(summary = "Đăng nhập", description = "Trả về accessToken và refreshToken")
-  public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody @Valid SignRequest signRequest) throws UnauthorizedException {
+  public ResponseEntity<ApiResponse<?>> login(@RequestBody @Valid SignRequest signRequest,@NotNull
+      HttpServletResponse res) throws UnauthorizedException {
     log.info("Login request: {}", signRequest);
-    ApiResponse<LoginResponse> response = this.authService.login(signRequest.getUsername(), signRequest.getPassword());
+    ApiResponse<?> response = this.authService.login(signRequest.getUsername(), signRequest.getPassword(), res);
     return ResponseEntity.ok(response);
   }
 
@@ -57,16 +60,17 @@ public class AuthController {
   @PostMapping("refresh")
   @Operation(summary = "Làm mới access token bằng refresh token", description = "Cần JWT nếu refresh token đã được gửi")
   @SecurityRequirement(name = "bearerAuth")
-  public ResponseEntity<ApiResponse<?>> refreshToken(@RequestBody RefreshTokenReqest refreshTokenReqest) {
-    ApiResponse<?> response = this.authService.refresh(refreshTokenReqest);
+  public ResponseEntity<ApiResponse<?>> refreshToken(@RequestBody RefreshTokenReqest refreshTokenReqest, @NotNull
+      HttpServletRequest req) {
+    ApiResponse<?> response = this.authService.refresh(refreshTokenReqest,req);
     return ResponseEntity.ok(response);
   }
 
   @GetMapping("logout")
   @Operation(summary = "Đăng xuất người dùng hiện tại", description = "Cần JWT để logout")
   @SecurityRequirement(name = "bearerAuth")
-  public ResponseEntity<ApiResponse<?>> logout() {
-    ApiResponse<?> response = this.authService.logout();
+  public ResponseEntity<ApiResponse<?>> logout(@NotNull HttpServletResponse res) {
+    ApiResponse<?> response = this.authService.logout(res);
     return ResponseEntity.ok(response);
   }
 

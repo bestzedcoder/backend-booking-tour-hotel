@@ -1,10 +1,10 @@
 package com.bestzedcoder.project3.booking_tour_hotel.service.iml;
 
+import com.bestzedcoder.project3.booking_tour_hotel.common.CookieUtils;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.ChangePasswordRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.RefreshTokenReqest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserSignupRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
-import com.bestzedcoder.project3.booking_tour_hotel.dto.response.LoginResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestException;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.ResourceNotFoundException;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.UnauthorizedException;
@@ -21,13 +21,15 @@ import com.bestzedcoder.project3.booking_tour_hotel.security.JwtUtils;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IAuthService;
 import com.bestzedcoder.project3.booking_tour_hotel.service.ITokenService;
 import com.fasterxml.jackson.core.type.TypeReference;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -46,6 +48,7 @@ public class AuthService implements IAuthService {
   private final ITokenService tokenService;
   private final RoleRepository roleRepository;
   private final IRedisService redisService;
+  private final CookieUtils cookieUtils;
 
   @Value("${application.security.secretKey}")
   private String secretKey;
@@ -54,20 +57,26 @@ public class AuthService implements IAuthService {
   @Value("${application.security.refreshExpiration}")
   private String expirationTimeRefresh;
   @Override
-  public ApiResponse<LoginResponse> login(String username, String password) {
+  public ApiResponse<?> login(String username, String password, HttpServletResponse res) {
     Authentication authentication = UsernamePasswordAuthenticationToken.unauthenticated(username, password);
     Authentication authenticated = this.authenticationManager.authenticate(authentication);
     if (authenticated == null || !authenticated.isAuthenticated()) {
       throw new UnauthorizedException("Xác thực thất bại");
     }
-    System.out.println(authenticated.getPrincipal());
     User user = (User) authenticated.getPrincipal();
     String access_token = this.jwtUtils.JwtGenerator(user, secretKey , expirationTimeAccess);
     String refresh_token = this.jwtUtils.JwtGenerator(user, secretKey , expirationTimeRefresh);
     this.redisService.saveKeyAndValue("auth:accessToken:"+user.getId() , access_token , expirationTimeAccess , TimeUnit.SECONDS);
     this.redisService.saveKeyAndValue("auth:refreshToken:"+user.getId() , refresh_token , expirationTimeRefresh , TimeUnit.SECONDS);
-    LoginResponse loginResponse = new LoginResponse( access_token, refresh_token);
-    return ApiResponse.<LoginResponse>builder().success(true).data(loginResponse).message("login success").build();
+    ResponseCookie cookie =  ResponseCookie.from("refresh_token" , refresh_token)
+        .maxAge(Long.parseLong(this.expirationTimeRefresh))
+        .secure(false)
+        .httpOnly(true)
+        .path("/api/auth")
+        .sameSite("Lax")
+        .build();
+    res.setHeader(HttpHeaders.SET_COOKIE , cookie.toString());
+    return ApiResponse.builder().success(true).data(Map.of("access_token" , access_token)).message("login success").build();
   }
 
   @Override
@@ -130,9 +139,9 @@ public class AuthService implements IAuthService {
   }
 
   @Override
-  public ApiResponse<?> refresh(RefreshTokenReqest refreshTokenReqest) {
+  public ApiResponse<?> refresh(RefreshTokenReqest refreshTokenReqest, HttpServletRequest req) {
     Long userId = refreshTokenReqest.getUserId();
-    String refreshToken = refreshTokenReqest.getRefreshToken();
+    String refreshToken = this.cookieUtils.getCookieValue(req, "refresh_token");
     String refreshRedis = this.redisService.getValue("auth:refreshToken:"+userId,new TypeReference<String>() {});
     if(refreshRedis == null) throw new UnauthorizedException("Refresh token expired");
     else if(!refreshRedis.equals(refreshToken)) {
@@ -146,13 +155,21 @@ public class AuthService implements IAuthService {
   }
 
   @Override
-  public ApiResponse<?> logout() {
+  public ApiResponse<?> logout(HttpServletResponse res) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     User user = (User) authentication.getPrincipal();
     String accessToken =  this.redisService.getValue("auth:accessToken:"+user.getId(),new TypeReference<String>() {});
     this.redisService.saveKeyAndValue("BlackList:"+accessToken+user.getId() , accessToken , expirationTimeAccess , TimeUnit.SECONDS);
     this.redisService.deleteKey("auth:accessToken:"+user.getId());
     this.redisService.deleteKey("auth:refreshToken:"+user.getId());
+    ResponseCookie cookie = ResponseCookie.from("refresh_token","")
+        .sameSite("Lax")
+        .maxAge(0)
+        .secure(false)
+        .httpOnly(true)
+        .path("/api/auth")
+        .build();
+    res.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     return ApiResponse.builder().success(true).message("logout success").build();
   }
 
