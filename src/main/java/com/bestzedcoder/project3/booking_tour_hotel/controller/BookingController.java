@@ -8,12 +8,16 @@ import com.bestzedcoder.project3.booking_tour_hotel.dto.response.PageResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingStatus;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingType;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.PaymentMethod;
+import com.bestzedcoder.project3.booking_tour_hotel.model.User;
+import com.bestzedcoder.project3.booking_tour_hotel.rabbit.BookingMessage;
+import com.bestzedcoder.project3.booking_tour_hotel.rabbit.BookingProducer;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IBookingService;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,18 +35,44 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasRole('CUSTOMER')")
 public class BookingController {
   private final IBookingService bookingService;
+  private final BookingProducer bookingProducer;
 
   @PostMapping("/hotel/{hotelId}/room/{roomId}")
   public ResponseEntity<ApiResponse<?>> bookingHotel(@RequestBody BookingHotelRequest bookingHotelRequest, @PathVariable Long hotelId, @PathVariable Long roomId) {
-    ApiResponse<?> response = this.bookingService.bookingHotel(bookingHotelRequest , hotelId , roomId);
-    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    BookingMessage msg = new BookingMessage();
+    msg.setUserId(user.getId());
+    msg.setBookingType(BookingType.HOTEL);
+    msg.setHotelId(hotelId);
+    msg.setRoomId(roomId);
+    msg.setHotelRequest(bookingHotelRequest);
+
+    bookingProducer.send(msg);
+
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(ApiResponse.builder()
+            .success(true)
+            .message("Booking is being processed")
+            .build());
   }
 
   @PostMapping("/tour/{tourId}")
   public ResponseEntity<ApiResponse<?>> bookingTour(@PathVariable("tourId") Long tourId, @RequestBody
       BookingTourRequest bookingTourRequest) {
-    ApiResponse<?> response = this.bookingService.bookingTour(bookingTourRequest , tourId);
-    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    BookingMessage msg = new BookingMessage();
+    msg.setUserId(user.getId());
+    msg.setBookingType(BookingType.TOUR);
+    msg.setTourId(tourId);
+    msg.setTourRequest(bookingTourRequest);
+
+    bookingProducer.send(msg);
+
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(ApiResponse.builder()
+            .success(true)
+            .message("Booking is being processed")
+            .build());
   }
 
   @PutMapping("/update-status/{bookingId}")

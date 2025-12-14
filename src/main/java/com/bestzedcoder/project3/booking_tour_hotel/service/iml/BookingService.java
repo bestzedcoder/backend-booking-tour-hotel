@@ -61,51 +61,6 @@ public class BookingService implements IBookingService {
   private final IRedisService redisService;
   private final IEmailService emailService;
 
-  @Override
-  @Transactional
-  public ApiResponse<?> bookingHotel(BookingHotelRequest request, Long hotelId, Long roomId) {
-    Hotel hotel = this.hotelRepository.findById(hotelId).orElseThrow(() -> new ResourceNotFoundException("hotel not found"));
-    Room room = this.roomRepository.findById(roomId).orElseThrow(() -> new ResourceNotFoundException("room not found"));
-    User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    Booking booking = new Booking();
-    booking.setBookingType(BookingType.HOTEL);
-    booking.setStatus(BookingStatus.PENDING);
-    booking.setBookingCode(this.genBookingCode());
-    booking.setTotalPrice(request.getTotalPrice());
-    booking.setPaymentMethod(request.getPaymentMethod());
-    booking.setOwner(hotel.getOwner().getId());
-    booking.setUser(user);
-    booking = this.bookingRepository.save(booking);
-    HotelBooking hotelBooking = new HotelBooking();
-    hotelBooking.setBookingRoomType(request.getBookingType());
-    hotelBooking.setHotelName(hotel.getHotelName());
-    hotelBooking.setHotelStar(hotel.getHotelStar());
-    hotelBooking.setAddress(hotel.getHotelAddress());
-    hotelBooking.setCheckIn(request.getCheckIn());
-    hotelBooking.setCheckOut(request.getCheckOut());
-    hotelBooking.setDuration(request.getDuration());
-    hotelBooking.setRoomType(room.getType());
-    hotelBooking.setRoomName(room.getRoomName());
-    hotelBooking.setBooking(booking);
-    hotelBooking.setRoom(room);
-    this.hotelBookingRepository.save(hotelBooking);
-    room.setStatus(RoomStatus.BOOKED);
-    this.roomRepository.save(room);
-    return ApiResponse.builder().success(true).message("Booked successfully").build();
-  }
-
-  private String genBookingCode() {
-    int length = 8;
-    String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    StringBuilder sb = new StringBuilder(length);
-    SecureRandom random = new SecureRandom();
-    for (int i = 0; i < length; i++) {
-      int index = random.nextInt(characters.length());
-      sb.append(characters.charAt(index));
-    }
-    return sb.toString();
-  }
-
   @Scheduled(cron = "0 * * * * *") // chạy mỗi 1 giờ
   public void autoFailExpiredBookings() {
     System.out.println("Auto fail expired bookings");
@@ -122,36 +77,6 @@ public class BookingService implements IBookingService {
     }
 
     bookingRepository.saveAll(bookings);
-  }
-
-  @Override
-  @Transactional
-  public ApiResponse<?> bookingTour(BookingTourRequest request, Long tourId) {
-    Tour tour = this.tourRepository.findById(tourId).orElseThrow(() -> new ResourceNotFoundException("tour not found"));
-    if (request.getPeople() > tour.getMaxPeople()) {
-      throw new BadRequestException("People limit exceeded");
-    }
-    tour.setMaxPeople(tour.getMaxPeople() - request.getPeople());
-    User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    Booking booking = new Booking();
-    booking.setBookingType(BookingType.TOUR);
-    booking.setStatus(BookingStatus.PENDING);
-    booking.setBookingCode(this.genBookingCode());
-    booking.setPaymentMethod(request.getPaymentMethod());
-    booking.setTotalPrice(request.getPeople() * tour.getPrice());
-    booking.setOwner(tour.getOwner().getId());
-    booking.setUser(user);
-    booking = this.bookingRepository.save(booking);
-    TourBooking tourBooking = new TourBooking();
-    tourBooking.setBooking(booking);
-    tourBooking.setTour(tour);
-    tourBooking.setTourName(tour.getName());
-    tourBooking.setDuration(tour.getDuration());
-    tourBooking.setPeople(request.getPeople());
-    tourBooking.setStartDate(tour.getStartDate());
-    tourBooking.setEndDate(tour.getEndDate());
-    this.tourBookingRepository.save(tourBooking);
-    return ApiResponse.builder().success(true).message("Booked successfully").build();
   }
 
   @Override

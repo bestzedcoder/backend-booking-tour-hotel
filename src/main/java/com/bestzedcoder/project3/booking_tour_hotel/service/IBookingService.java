@@ -10,8 +10,6 @@ import com.bestzedcoder.project3.booking_tour_hotel.enums.PaymentMethod;
 import java.time.LocalDate;
 
 public interface IBookingService {
-  ApiResponse<?> bookingHotel(BookingHotelRequest request , Long hotelId , Long roomId);
-  ApiResponse<?> bookingTour(BookingTourRequest request, Long tourId);
   ApiResponse<?> updateStatus(Long id , BookingStatus status);
   ApiResponse<?> getByAdminV2(String name);
   ApiResponse<?> deleteBooking(Long id);
