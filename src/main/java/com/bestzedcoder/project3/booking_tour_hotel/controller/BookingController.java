@@ -8,6 +8,8 @@ import com.bestzedcoder.project3.booking_tour_hotel.dto.response.PageResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingStatus;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingType;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.PaymentMethod;
+import com.bestzedcoder.project3.booking_tour_hotel.mapper.BookingMapper;
+import com.bestzedcoder.project3.booking_tour_hotel.model.Booking;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
 import com.bestzedcoder.project3.booking_tour_hotel.rabbit.BookingMessage;
 import com.bestzedcoder.project3.booking_tour_hotel.rabbit.BookingProducer;
@@ -36,12 +38,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class BookingController {
   private final IBookingService bookingService;
   private final BookingProducer bookingProducer;
+  private final BookingMapper bookingMapper;
 
   @PostMapping("/hotel/{hotelId}/room/{roomId}")
   public ResponseEntity<ApiResponse<?>> bookingHotel(@RequestBody BookingHotelRequest bookingHotelRequest, @PathVariable Long hotelId, @PathVariable Long roomId) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    Booking booking = this.bookingMapper.createBooking(bookingHotelRequest.getPaymentMethod(), BookingType.HOTEL, user);
     BookingMessage msg = new BookingMessage();
     msg.setUserId(user.getId());
+    msg.setBookingId(booking.getId());
     msg.setBookingType(BookingType.HOTEL);
     msg.setHotelId(hotelId);
     msg.setRoomId(roomId);
@@ -53,6 +58,7 @@ public class BookingController {
         .body(ApiResponse.builder()
             .success(true)
             .message("Booking is being processed")
+            .data(booking.getId())
             .build());
   }
 
@@ -60,8 +66,10 @@ public class BookingController {
   public ResponseEntity<ApiResponse<?>> bookingTour(@PathVariable("tourId") Long tourId, @RequestBody
       BookingTourRequest bookingTourRequest) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    Booking booking = this.bookingMapper.createBooking(bookingTourRequest.getPaymentMethod(), BookingType.TOUR, user);
     BookingMessage msg = new BookingMessage();
     msg.setUserId(user.getId());
+    msg.setBookingId(booking.getId());
     msg.setBookingType(BookingType.TOUR);
     msg.setTourId(tourId);
     msg.setTourRequest(bookingTourRequest);
@@ -72,6 +80,7 @@ public class BookingController {
         .body(ApiResponse.builder()
             .success(true)
             .message("Booking is being processed")
+            .data(booking.getId())
             .build());
   }
 

@@ -56,7 +56,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                         .path("/api/auth")
                         .build();
     response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-    response.sendRedirect("http://localhost:5173/oauth2/success?accessToken=" + auth.get("accessToken"));
+    response.sendRedirect("http://localhost:5174/oauth2/success?accessToken=" + auth.get("accessToken"));
   }
 
   private Map<String, String> solve(String email) {

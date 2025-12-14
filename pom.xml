@@ -127,6 +127,12 @@
 			<version>3.5.3</version>
 		</dependency>
 
+		<!--	Socket	-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+
 		<!--	RabbitMQ	-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

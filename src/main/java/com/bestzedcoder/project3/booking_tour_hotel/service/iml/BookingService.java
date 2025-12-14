@@ -238,14 +238,14 @@ public class BookingService implements IBookingService {
                     HotelBooking hotelBooking =
                         hotelBookingRepository
                             .findByBookingId(booking.getId())
-                            .orElseThrow(RuntimeException::new);
+                            .orElse(null);
 
                     return BookingMapper.toHotelBookingResponse(booking, hotelBooking);
                   } else {
                     TourBooking tourBooking =
                         tourBookingRepository
                             .findByBookingId(booking.getId())
-                            .orElseThrow(RuntimeException::new);
+                            .orElse(null);
 
                     return BookingMapper.toTourBookingResponse(booking, tourBooking);
                   }
