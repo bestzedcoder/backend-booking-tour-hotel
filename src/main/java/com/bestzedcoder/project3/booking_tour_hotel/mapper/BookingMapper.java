@@ -19,6 +19,8 @@ public class BookingMapper {
     bookingSearchResponse.setPaymentMethod(booking.getPaymentMethod());
     bookingSearchResponse.setPrice(booking.getTotalPrice());
     bookingSearchResponse.setType(booking.getBookingType());
+    bookingSearchResponse.setCreatedAt(booking.getCreatedAt());
+    bookingSearchResponse.setUpdatedAt(booking.getUpdatedAt());
     return bookingSearchResponse;
   }
 
@@ -42,6 +44,8 @@ public class BookingMapper {
         .paymentMethod(booking.getPaymentMethod())
         .price(booking.getTotalPrice())
         .type(booking.getBookingType())
+        .createdAt(booking.getCreatedAt())
+        .updatedAt(booking.getUpdatedAt())
         .details(details)
         .build();
   }
@@ -62,6 +66,8 @@ public class BookingMapper {
         .paymentMethod(booking.getPaymentMethod())
         .price(booking.getTotalPrice())
         .type(booking.getBookingType())
+        .createdAt(booking.getCreatedAt())
+        .updatedAt(booking.getUpdatedAt())
         .details(details)
         .build();
   }
