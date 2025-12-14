@@ -21,6 +21,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @RequiredArgsConstructor
@@ -36,10 +37,13 @@ public class SecurityConfig {
               @Override
               public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                 CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(List.of("*"));
-                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE","OPTIONS"));
-                config.setExposedHeaders(List.of("Authorization"));
+                config.setAllowedOrigins(List.of("http://localhost:5173"));
+                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                 config.setAllowedHeaders(List.of("*"));
+                config.setAllowCredentials(true);
+
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", config);
                 return config;
               }
             }
@@ -52,10 +56,6 @@ public class SecurityConfig {
         .anyRequest().authenticated())
         .addFilterBefore(jwtValidationFilter, UsernamePasswordAuthenticationFilter.class)
         .oauth2Login(oauth2 -> oauth2.successHandler(oAuth2SuccessHandler));
-
-//        .authenticationProvider();
-//    http.formLogin(AbstractHttpConfigurer::disable);
-//    http.httpBasic(AbstractHttpConfigurer::disable);
 
       http.exceptionHandling(exception ->
         exception.authenticationEntryPoint(authenticationEntryPoint())

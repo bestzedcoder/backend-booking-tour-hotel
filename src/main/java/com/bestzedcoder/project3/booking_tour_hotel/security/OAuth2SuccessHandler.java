@@ -18,6 +18,8 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -46,7 +48,15 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
     String email = oAuth2User.getAttribute("email");
     Map<String , String> auth = this.solve(email);
-    response.sendRedirect("http://localhost:5173/oauth2/success?accessToken=" + auth.get("accessToken") + "&refreshToken=" + auth.get("refreshToken"));
+    ResponseCookie cookie = ResponseCookie.from("refresh_token" , auth.get("refreshToken"))
+                        .maxAge(Long.parseLong(this.expirationTimeRefresh))
+                        .sameSite("Lax")
+                        .httpOnly(true)
+                        .secure(false)
+                        .path("/api/auth")
+                        .build();
+    response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    response.sendRedirect("http://localhost:5173/oauth2/success?accessToken=" + auth.get("accessToken"));
   }
 
   private Map<String, String> solve(String email) {
