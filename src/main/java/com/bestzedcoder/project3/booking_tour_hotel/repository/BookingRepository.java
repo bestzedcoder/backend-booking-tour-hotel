@@ -5,12 +5,14 @@ import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingStatus;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Booking;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> ,
     JpaSpecificationExecutor<Booking> {
+  Optional<Booking> findByBookingCode(String bookingCode);
   List<Booking> findByStatusAndCreatedAtBefore(BookingStatus status, LocalDateTime createdAt);
   List<Booking> findByOwner(Long owner);
   List<Booking> findByUserId(Long userId);

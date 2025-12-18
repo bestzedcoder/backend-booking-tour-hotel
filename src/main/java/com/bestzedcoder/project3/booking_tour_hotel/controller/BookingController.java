@@ -45,8 +45,7 @@ public class BookingController {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     Booking booking = this.bookingMapper.createBooking(bookingHotelRequest.getPaymentMethod(), BookingType.HOTEL, user);
     BookingMessage msg = new BookingMessage();
-    msg.setUserId(user.getId());
-    msg.setBookingId(booking.getId());
+    msg.setBookingCode(booking.getBookingCode());
     msg.setBookingType(BookingType.HOTEL);
     msg.setHotelId(hotelId);
     msg.setRoomId(roomId);
@@ -58,7 +57,7 @@ public class BookingController {
         .body(ApiResponse.builder()
             .success(true)
             .message("Booking is being processed")
-            .data(booking.getId())
+            .data(booking.getBookingCode())
             .build());
   }
 
@@ -68,8 +67,7 @@ public class BookingController {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     Booking booking = this.bookingMapper.createBooking(bookingTourRequest.getPaymentMethod(), BookingType.TOUR, user);
     BookingMessage msg = new BookingMessage();
-    msg.setUserId(user.getId());
-    msg.setBookingId(booking.getId());
+    msg.setBookingCode(booking.getBookingCode());
     msg.setBookingType(BookingType.TOUR);
     msg.setTourId(tourId);
     msg.setTourRequest(bookingTourRequest);
@@ -80,7 +78,7 @@ public class BookingController {
         .body(ApiResponse.builder()
             .success(true)
             .message("Booking is being processed")
-            .data(booking.getId())
+            .data(booking.getBookingCode())
             .build());
   }
 

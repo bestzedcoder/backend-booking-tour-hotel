@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class BookingResult {
-  private Long bookingId;
+  private String bookingCode;
   private String status;
   private String failureReason;
 }

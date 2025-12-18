@@ -10,10 +10,8 @@ import lombok.Setter;
 @Setter
 public class BookingMessage {
 
-  private Long bookingId;
-
+  private String bookingCode;
   private BookingType bookingType;
-  private Long userId;
 
   // TOUR
   private Long tourId;

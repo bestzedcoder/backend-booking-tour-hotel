@@ -1,6 +1,5 @@
 package com.bestzedcoder.project3.booking_tour_hotel.rabbit;
 
-import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingStatus;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingType;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.RoomStatus;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestException;
@@ -11,16 +10,13 @@ import com.bestzedcoder.project3.booking_tour_hotel.model.HotelBooking;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Room;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Tour;
 import com.bestzedcoder.project3.booking_tour_hotel.model.TourBooking;
-import com.bestzedcoder.project3.booking_tour_hotel.model.User;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.BookingRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.HotelBookingRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.HotelRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.RoomRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.TourBookingRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.TourRepository;
-import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import java.security.SecureRandom;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +30,6 @@ public class BookingProcessor {
   private final TourRepository tourRepository;
   private final HotelBookingRepository hotelBookingRepository;
   private final TourBookingRepository tourBookingRepository;
-  private final UserRepository userRepository;
 
   @Transactional
   public void processHotel(BookingMessage msg) {
@@ -45,9 +40,7 @@ public class BookingProcessor {
       throw new BadRequestException("Room already booked");
     }
     room.setStatus(RoomStatus.BOOKED);
-    User user = this.userRepository.findById(msg.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-    Booking booking = this.bookingRepository.findById(msg.getBookingId()).orElseThrow(() -> new ResourceNotFoundException("Booking record not found"));
+    Booking booking = this.bookingRepository.findByBookingCode(msg.getBookingCode()).orElseThrow(() -> new ResourceNotFoundException("Booking record not found"));
     booking.setTotalPrice(msg.getHotelRequest().getTotalPrice());
     booking.setOwner(hotel.getOwner().getId());
     HotelBooking hotelBooking = new HotelBooking();
@@ -64,7 +57,7 @@ public class BookingProcessor {
     hotelBooking.setRoom(room);
     this.hotelBookingRepository.save(hotelBooking);
 
-    bookingNotifier.notifyClient(booking.getId(), "CONFIRMED", null);
+    bookingNotifier.notifyClient(booking.getBookingCode(), "hotel", "CONFIRMED", null);
   }
 
   @Transactional
@@ -75,9 +68,7 @@ public class BookingProcessor {
       throw new BadRequestException("Số lượng thành viên vượt quá.");
     }
     tour.setMaxPeople(tour.getMaxPeople() - msg.getTourRequest().getPeople());
-    User user = this.userRepository.findById(msg.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-    Booking booking = this.bookingRepository.findById(msg.getBookingId())
+    Booking booking = this.bookingRepository.findByBookingCode(msg.getBookingCode())
         .orElseThrow(() -> new ResourceNotFoundException("Booking record not found"));
 
     booking.setTotalPrice(msg.getTourRequest().getPeople() * tour.getPrice());
@@ -92,15 +83,20 @@ public class BookingProcessor {
     tourBooking.setEndDate(tour.getEndDate());
     this.tourBookingRepository.save(tourBooking);
 
-    bookingNotifier.notifyClient(booking.getId(), "CONFIRMED", null);
+    bookingNotifier.notifyClient(booking.getBookingCode(), "tour" ,"CONFIRMED", null);
   }
 
   @Transactional
-  public void updateBookingStatusFailed(Long bookingId, String reason) {
-    bookingRepository.findById(bookingId).ifPresent(booking -> {
+  public void handleBookingFailed(String bookingCode, String reason) {
+    bookingRepository.findByBookingCode(bookingCode).ifPresent(booking -> {
       this.bookingRepository.delete(booking);
-      // GỌI NOTIFIER: Đẩy thông báo thất bại
-      bookingNotifier.notifyClient(bookingId, "FAILED", reason);
+      String type;
+      if (booking.getBookingType().equals(BookingType.HOTEL)) {
+        type = "hotel";
+      } else {
+        type = "tour";
+      }
+      bookingNotifier.notifyClient(bookingCode, type ,"FAILED", reason);
     });
   }
 }

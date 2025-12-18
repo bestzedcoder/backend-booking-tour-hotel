@@ -34,7 +34,7 @@ public class BookingConsumer {
       // 🚨 BẮT LỖI NGHIỆP VỤ (Hết phòng, không tìm thấy tài nguyên,...)
 
       // 1. Cập nhật trạng thái FAILED trong DB và gửi thông báo WebSocket
-      bookingProcessor.updateBookingStatusFailed(msg.getBookingId(), e.getMessage());
+      bookingProcessor.handleBookingFailed(msg.getBookingCode(), e.getMessage());
 
       // 2. Ngăn RabbitMQ thử lại vô hạn (Reject và không Requeue)
       throw new AmqpRejectAndDontRequeueException("Business Error: " + e.getMessage(), e);
