@@ -29,8 +29,7 @@ public class BookingMapper {
     booking.setUser(user);
     booking.setTotalPrice(Double.valueOf(0.0));
     booking.setOwner(user.getId());
-    booking = this.bookingRepository.save(booking);
-    return booking;
+    return this.bookingRepository.save(booking);
   }
 
   public static BookingSearchResponse bookingToBookingSearchResponse(Booking booking) {

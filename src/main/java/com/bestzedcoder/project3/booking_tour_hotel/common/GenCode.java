@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 public class GenCode {
   private static final String PREFIX = "ORD";
   private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  private static final int RANDOM_LENGTH = 6;
+  private static final int RANDOM_LENGTH = 5;
   private static final SecureRandom RANDOM = new SecureRandom();
   private static final DateTimeFormatter FORMATTER =
       DateTimeFormatter.ofPattern("yyyyMMddHHmmss");

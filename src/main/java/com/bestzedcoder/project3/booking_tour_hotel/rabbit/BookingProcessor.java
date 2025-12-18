@@ -98,11 +98,7 @@ public class BookingProcessor {
   @Transactional
   public void updateBookingStatusFailed(Long bookingId, String reason) {
     bookingRepository.findById(bookingId).ifPresent(booking -> {
-      // Cần thêm trường failureReason vào Booking Entity
-      // booking.setFailureReason(reason);
-      booking.setStatus(BookingStatus.CANCELLED);
-      bookingRepository.save(booking);
-
+      this.bookingRepository.delete(booking);
       // GỌI NOTIFIER: Đẩy thông báo thất bại
       bookingNotifier.notifyClient(bookingId, "FAILED", reason);
     });
