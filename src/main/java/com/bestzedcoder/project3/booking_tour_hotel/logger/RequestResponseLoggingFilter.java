@@ -1,4 +1,4 @@
-package com.bestzedcoder.project3.booking_tour_hotel.config;
+package com.bestzedcoder.project3.booking_tour_hotel.logger;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -11,7 +11,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Slf4j
-@Component // 👈 Quan trọng: Spring sẽ tự động đăng ký filter này
+@Component
 public class RequestResponseLoggingFilter extends OncePerRequestFilter {
 
   @Override
@@ -22,15 +22,12 @@ public class RequestResponseLoggingFilter extends OncePerRequestFilter {
 
     long startTime = System.currentTimeMillis();
 
-    // ✅ Log request (method + URL)
     log.info("➡️ Incoming Request: {} {}", request.getMethod(), request.getRequestURI());
 
-    // Tiếp tục xử lý filter chain
     filterChain.doFilter(request, response);
 
     long duration = System.currentTimeMillis() - startTime;
 
-    // ✅ Log response (status + thời gian xử lý)
     log.info("⬅️ Response: {} {} | Status: {} | Time: {} ms",
         request.getMethod(),
         request.getRequestURI(),

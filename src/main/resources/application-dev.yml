@@ -1,54 +1,53 @@
-# setup database
-spring:
-# setup database
-  datasource:
-    url: ${DATABASE_URL}
-    username: ${USER_NAME}
-    password: ${PASSWORD}
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: true
-
-
-# global environment
-
-application:
-  security:
-    secretKey: ${JWT_SECRET_KEY}
-    accessExpiration: ${JWT_ACCESS_EXPIRATION}
-    refreshExpiration: ${JWT_REFRESH_EXPIRATION}
-    secretKeyMAC: ${SECRET_KEY_MAC}
-
-cloudinary:
-  cloud-name: ${CLOUDINARY_NAME}
-  api-key: ${CLOUDINARY_API_KEY}
-  api-secret: ${CLOUDINARY_API_SECRET}
-
-
-payment:
-  vnPay:
-    url: ${PAY_URL}
-    tmnCode: ${TMN_CODE}
-    secretKey: ${SECRET_KEY}
-    returnUrl: ${RETURN_URL}
-    version: ${VERSION}
-    command: ${COMMAND}
-    orderType: ${ORDER_TYPE}
-
-# logging
-#  logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
-logging:
-  level:
-    org:
-      hibernate:
-        type:
-          descriptor:
-            sql:
-              BasicExtractor: TRACE
-              BasicBinder: TRACE
-
-#  logging.level.org.hibernate.type.descriptor.sql.BasicExtractor=TRACE
+## setup database
+#spring:
+## setup database
+#  datasource:
+#    url: ${DATABASE_URL}
+#    username: ${USER_NAME}
+#    password: ${PASSWORD}
+#    driver-class-name: org.postgresql.Driver
+#  jpa:
+#    hibernate:
+#      ddl-auto: update
+#    database: postgresql
+#    database-platform: org.hibernate.dialect.PostgreSQLDialect
+#    show-sql: true
+#
+#
+## global environment
+#application:
+#  security:
+#    secretKey: ${JWT_SECRET_KEY}
+#    accessExpiration: ${JWT_ACCESS_EXPIRATION}
+#    refreshExpiration: ${JWT_REFRESH_EXPIRATION}
+#    secretKeyMAC: ${SECRET_KEY_MAC}
+#
+#cloudinary:
+#  cloud-name: ${CLOUDINARY_NAME}
+#  api-key: ${CLOUDINARY_API_KEY}
+#  api-secret: ${CLOUDINARY_API_SECRET}
+#
+#
+#payment:
+#  vnPay:
+#    url: ${PAY_URL}
+#    tmnCode: ${TMN_CODE}
+#    secretKey: ${SECRET_KEY}
+#    returnUrl: ${RETURN_URL}
+#    version: ${VERSION}
+#    command: ${COMMAND}
+#    orderType: ${ORDER_TYPE}
+#
+## logging
+##  logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+#logging:
+#  level:
+#    org:
+#      hibernate:
+#        type:
+#          descriptor:
+#            sql:
+#              BasicExtractor: TRACE
+#              BasicBinder: TRACE
+#
+##  logging.level.org.hibernate.type.descriptor.sql.BasicExtractor=TRACE

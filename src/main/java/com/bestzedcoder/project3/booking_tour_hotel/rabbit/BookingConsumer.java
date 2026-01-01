@@ -31,17 +31,10 @@ public class BookingConsumer {
       }
 
     } catch (BadRequestException | ResourceNotFoundException e) {
-      // 🚨 BẮT LỖI NGHIỆP VỤ (Hết phòng, không tìm thấy tài nguyên,...)
-
-      // 1. Cập nhật trạng thái FAILED trong DB và gửi thông báo WebSocket
       bookingProcessor.handleBookingFailed(msg.getBookingCode(), e.getMessage());
-
-      // 2. Ngăn RabbitMQ thử lại vô hạn (Reject và không Requeue)
       throw new AmqpRejectAndDontRequeueException("Business Error: " + e.getMessage(), e);
 
     } catch (Exception e) {
-      // ⚠️ BẮT LỖI KỸ THUẬT/TẠM THỜI (Lỗi DB, Network)
-      // Lỗi này sẽ đẩy ra ngoài để kích hoạt cơ chế Retry của Spring AMQP
       throw new AmqpException("Transient Error. Retrying...", e);
     }
   }

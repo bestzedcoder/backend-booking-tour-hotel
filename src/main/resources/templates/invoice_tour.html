@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hóa đơn Đặt Tour Du lịch</title>
+  <style>
+    body { font-family: 'Arial', sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9; }
+    .container { max-width: 700px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .header { text-align: center; border-bottom: 2px solid #17a2b8; padding-bottom: 10px; margin-bottom: 20px; }
+    .header h1 { color: #17a2b8; margin: 0; font-size: 24px; }
+    .details table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .details th, .details td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+    .details th { background-color: #f8f9fa; width: 40%; }
+    .qr-section { text-align: center; margin: 30px 0; padding: 15px; border: 1px dashed #17a2b8; border-radius: 5px; }
+    .qr-section p { font-size: 14px; color: #555; }
+    .qr-section img { max-width: 150px; height: auto; }
+    .summary { text-align: right; margin-top: 20px; }
+    .summary table { width: 100%; }
+    .summary th, .summary td { padding: 8px 0; }
+    .summary .total { font-size: 18px; font-weight: bold; color: #dc3545; border-top: 2px solid #333; }
+    .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #888; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>HÓA ĐƠN ĐẶT TOUR DU LỊCH</h1>
+    <p>Mã đặt chỗ: <strong th:text="${bookingCode}">TOUR123456</strong></p>
+  </div>
+
+  <div class="qr-section">
+    <p><strong>MÃ XÁC NHẬN (QUÉT KHI KHỞI HÀNH)</strong></p>
+    <img th:src="${qrCodeImageSource}" alt="QR Code Xác nhận Tour" />
+    <p>Mã bảo mật: <span style="font-family: monospace; font-size: 12px;" th:text="${macData}">Mã_MAC_Hash</span></p>
+  </div>
+
+  <h2>Thông tin Tour</h2>
+  <div class="details">
+    <table>
+      <tr><th>Tên Tour</th><td th:text="${tourName}">Tên Tour Du Lịch</td></tr>
+      <tr><th>Điểm đến</th><td th:text="${tourCity}">Thành phố/Địa điểm</td></tr>
+      <tr><th>Số lượng người</th><td th:text="${people}">2 người</td></tr>
+      <tr><th>Trạng thái</th><td><strong style="color: #28a745;" th:text="${status}">THÀNH CÔNG</strong></td></tr>
+    </table>
+  </div>
+
+  <h2>Lịch trình & Thanh toán</h2>
+  <div class="details">
+    <table>
+      <tr><th>Ngày khởi hành</th><td th:text="${startDate}">2025-02-10</td></tr>
+      <tr><th>Ngày kết thúc</th><td th:text="${endDate}">2025-02-13</td></tr>
+      <tr><th>Thời gian</th><td th:text="${duration}">4 ngày 3 đêm</td></tr>
+      <tr><th>Phương thức TT</th><td th:text="${paymentMethod}">VNPAY / Chuyển khoản</td></tr>
+    </table>
+  </div>
+
+  <div class="summary">
+    <table>
+      <tr>
+        <th class="total">TỔNG CHI PHÍ TOUR</th>
+        <td class="total">
+          <span th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT')}">5,000,000</span> VNĐ
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="footer">
+    Cảm ơn bạn đã tin tưởng chọn dịch vụ của BestZedCoder. <br>
+    Vui lòng có mặt tại điểm hẹn ít nhất 15 phút trước giờ khởi hành và xuất trình mã QR này.
+  </div>
+</div>
+</body>
+</html>

@@ -10,11 +10,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitConfig {
   public static final String BOOKING_QUEUE = "booking.queue";
+  public static final String EMAIL_QUEUE = "email.queue";
 
   @Bean
   public Queue bookingQueue() {
     return new Queue(BOOKING_QUEUE, true);
   }
+
+  @Bean
+  public Queue emailQueue() { return new Queue(EMAIL_QUEUE, true); }
 
   @Bean
   public Jackson2JsonMessageConverter messageConverter() {

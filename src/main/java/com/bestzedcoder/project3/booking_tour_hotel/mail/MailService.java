@@ -17,13 +17,13 @@ import org.thymeleaf.context.Context;
 
 @Service
 @RequiredArgsConstructor
+@Async
 public class MailService implements IEmailService {
   private final JavaMailSender mailSender;
   private final TemplateEngine templateEngine;
   private final MacService macService;
   private final QRCodeService qrCodeService;
 
-  @Async
   public void sendVerificationEmail(MailDetails mailDetails) {
     Context context = new Context();
     context.setVariable("fullName", mailDetails.getUsername());
@@ -85,11 +85,13 @@ public class MailService implements IEmailService {
     context.setVariable("paymentMethod" , contentInvoiceHotel.getPaymentMethod());
     context.setVariable("totalPrice" , contentInvoiceHotel.getTotalPrice());
     // gen mac
-    String macDataToEncode = String.format("%s|%f|%s|%s",
+    String macDataToEncode = String.format("%s|%f|%s|%s|%s|%s",
         contentInvoiceHotel.getBookingCode(),
         contentInvoiceHotel.getTotalPrice(),
         contentInvoiceHotel.getCheckIn(),
-        contentInvoiceHotel.getStatus());
+        contentInvoiceHotel.getDuration(),
+        contentInvoiceHotel.getStatus(),
+        contentInvoiceHotel.getPaymentMethod());
     String macHash;
     try {
       macHash = macService.generateHmac(macDataToEncode);
@@ -101,8 +103,6 @@ public class MailService implements IEmailService {
     //gen QR
     byte[] qrCodeImageBytes;
     try {
-      // Sinh ảnh QR (dùng 150x150 pixels, định dạng PNG hoặc JPEG)
-      // Giả sử service này trả về mảng byte[] PNG
       qrCodeImageBytes = qrCodeService.generateQRCodeImage(qrCodeData, 150, 150);
     } catch (Exception e) {
       throw new RuntimeException("Lỗi khi tạo ảnh QR Code", e);
@@ -118,8 +118,6 @@ public class MailService implements IEmailService {
       helper.setTo(contentInvoiceHotel.getTo());
       helper.setSubject("Hóa đơn đặt phòng của bạn: " + contentInvoiceHotel.getBookingCode());
       helper.setText(htmlContent, true);
-      //  Nhúng ảnh QR Code vào email bằng CID
-      // "image/png" phải khớp với định dạng ảnh bạn sinh ra (Nếu là JPEG thì dùng "image/jpeg")
       helper.addInline(QR_CID, new ByteArrayResource(qrCodeImageBytes), "image/png");
       mailSender.send(message);
     } catch (MessagingException e) {
@@ -129,6 +127,56 @@ public class MailService implements IEmailService {
 
   @Override
   public void sendInvoiceTourEmail(ContentInvoiceTour contentInvoiceTour) {
+    Context context = new Context();
+    context.setVariable("bookingCode" , contentInvoiceTour.getBookingCode());
+    context.setVariable("tourName" , contentInvoiceTour.getTourName());
+    context.setVariable("tourCity" , contentInvoiceTour.getTourCity());
+    context.setVariable("duration" , contentInvoiceTour.getDuration());
+    context.setVariable("startDate" , contentInvoiceTour.getStartDate());
+    context.setVariable("endDate" , contentInvoiceTour.getEndDate());
+    context.setVariable("people" , contentInvoiceTour.getPeople());
+    context.setVariable("status" , contentInvoiceTour.getStatus());
+    context.setVariable("paymentMethod" , contentInvoiceTour.getPaymentMethod());
+    context.setVariable("totalPrice" , contentInvoiceTour.getTotalPrice());
+    // gen mac
+    String macDataToEncode = String.format("%s|%f|%s|%s|%s|%s",
+        contentInvoiceTour.getBookingCode(),
+        contentInvoiceTour.getTotalPrice(),
+        contentInvoiceTour.getStartDate(),
+        contentInvoiceTour.getDuration(),
+        contentInvoiceTour.getStatus(),
+        contentInvoiceTour.getPaymentMethod());
 
+    String macHash;
+    try {
+      macHash = macService.generateHmac(macDataToEncode);
+    } catch (Exception e) {
+      throw new RuntimeException("Lỗi khi tạo MAC Hash", e);
+    }
+
+    String qrCodeData = contentInvoiceTour.getBookingCode() + "|" + macHash;
+    //gen QR
+    byte[] qrCodeImageBytes;
+    try {
+      qrCodeImageBytes = qrCodeService.generateQRCodeImage(qrCodeData, 150, 150);
+    } catch (Exception e) {
+      throw new RuntimeException("Lỗi khi tạo ảnh QR Code", e);
+    }
+    context.setVariable("macData" , qrCodeData);
+    final String QR_CID = "qr-image-id";
+    context.setVariable("qrCodeImageSource" , "cid:" + QR_CID);
+
+    String htmlContent = templateEngine.process("invoice_tour", context);
+    try {
+      MimeMessage message = mailSender.createMimeMessage();
+      MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+      helper.setTo(contentInvoiceTour.getTo());
+      helper.setSubject("Hóa đơn đặt tour của bạn: " + contentInvoiceTour.getBookingCode());
+      helper.setText(htmlContent, true);
+      helper.addInline(QR_CID, new ByteArrayResource(qrCodeImageBytes), "image/png");
+      mailSender.send(message);
+    } catch (MessagingException e) {
+      throw new RuntimeException("Gửi email thất bại", e);
+    }
   }
 }

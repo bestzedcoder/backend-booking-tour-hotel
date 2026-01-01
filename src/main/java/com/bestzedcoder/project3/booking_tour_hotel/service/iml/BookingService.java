@@ -61,7 +61,7 @@ public class BookingService implements IBookingService {
   private final IRedisService redisService;
   private final IEmailService emailService;
 
-  @Scheduled(cron = "0 * * * * *") // chạy mỗi 1 giờ
+  @Scheduled(cron = "0 * * * * *")
   public void autoFailExpiredBookings() {
     System.out.println("Auto fail expired bookings");
 
@@ -151,7 +151,20 @@ public class BookingService implements IBookingService {
           .build();
       this.emailService.sendInvoiceHotelEmail(cnt);
     } else {
-      ContentInvoiceTour cnt = ContentInvoiceTour.builder().build();
+      TourBooking tourBooking = this.tourBookingRepository.findByBookingId(id).orElseThrow(() -> new ResourceNotFoundException("tour booking not found"));
+      ContentInvoiceTour cnt = ContentInvoiceTour.builder()
+          .to(customer.getEmail())
+          .bookingCode(booking.getBookingCode())
+          .tourName(tourBooking.getTourName())
+          .tourCity(tourBooking.getTour().getCity())
+          .people(tourBooking.getPeople())
+          .startDate(tourBooking.getStartDate())
+          .endDate(tourBooking.getEndDate())
+          .duration(tourBooking.getDuration())
+          .status(booking.getStatus())
+          .paymentMethod(booking.getPaymentMethod())
+          .totalPrice(booking.getTotalPrice())
+          .build();
       this.emailService.sendInvoiceTourEmail(cnt);
     }
     return ApiResponse.builder().success(true).message("Bill đã được gửi thành công. Vui lòng vào email để xác nhận!").build();
@@ -221,39 +234,30 @@ public class BookingService implements IBookingService {
   @Override
   public ApiResponse<?> getByCustomer() {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//    String keyCache = String.format("search:booking:customer:%d", user.getId());
-//    ApiResponse<BookingCustomerResponse<?>>  dataCache = this.redisService.getValue(keyCache,
-//        new TypeReference<ApiResponse<BookingCustomerResponse<?>>>() {});
-//    if (dataCache != null) {
-//      return dataCache;
-//    }
     List<Booking> bookings = this.bookingRepository.findByUserId(user.getId());
-    ApiResponse<List<BookingCustomerResponse<?>>> response =
-        ApiResponse.<List<BookingCustomerResponse<?>>>builder()
-            .success(true)
-            .message("Search successful")
-            .data(
-                bookings.stream().map(booking -> {
-                  if (booking.getBookingType() == BookingType.HOTEL) {
-                    HotelBooking hotelBooking =
-                        hotelBookingRepository
-                            .findByBookingId(booking.getId())
-                            .orElse(null);
+    return ApiResponse.<List<BookingCustomerResponse<?>>>builder()
+        .success(true)
+        .message("Search successful")
+        .data(
+            bookings.stream().map(booking -> {
+              if (booking.getBookingType() == BookingType.HOTEL) {
+                HotelBooking hotelBooking =
+                    hotelBookingRepository
+                        .findByBookingId(booking.getId())
+                        .orElse(null);
 
-                    return BookingMapper.toHotelBookingResponse(booking, hotelBooking);
-                  } else {
-                    TourBooking tourBooking =
-                        tourBookingRepository
-                            .findByBookingId(booking.getId())
-                            .orElse(null);
+                return BookingMapper.toHotelBookingResponse(booking, hotelBooking);
+              } else {
+                TourBooking tourBooking =
+                    tourBookingRepository
+                        .findByBookingId(booking.getId())
+                        .orElse(null);
 
-                    return BookingMapper.toTourBookingResponse(booking, tourBooking);
-                  }
-                }).toList()
-            )
-            .build();
-//    this.redisService.saveKeyAndValue(keyCache , response , "1" , TimeUnit.MINUTES);
-    return response;
+                return BookingMapper.toTourBookingResponse(booking, tourBooking);
+              }
+            }).toList()
+        )
+        .build();
   }
 
   @Override

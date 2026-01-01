@@ -36,9 +36,10 @@ public class BookingProcessor {
     Room room = this.roomRepository.findByIdForUpdate(msg.getRoomId())
         .orElseThrow(() -> new ResourceNotFoundException("Room not found"));
     Hotel hotel = this.hotelRepository.findById(msg.getHotelId()).orElseThrow(() -> new ResourceNotFoundException("Hotel not found"));
-    if (room.getStatus() == RoomStatus.BOOKED) {
-      throw new BadRequestException("Room already booked");
+    if (!room.getStatus().equals(RoomStatus.AVAILABLE)) {
+      throw new BadRequestException("Phòng hiện tại đã có người đặt hoặc đang bảo trì.");
     }
+
     room.setStatus(RoomStatus.BOOKED);
     Booking booking = this.bookingRepository.findByBookingCode(msg.getBookingCode()).orElseThrow(() -> new ResourceNotFoundException("Booking record not found"));
     booking.setTotalPrice(msg.getHotelRequest().getTotalPrice());
