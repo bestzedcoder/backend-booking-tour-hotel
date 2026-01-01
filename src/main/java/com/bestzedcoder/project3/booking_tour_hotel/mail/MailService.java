@@ -1,7 +1,7 @@
 package com.bestzedcoder.project3.booking_tour_hotel.mail;
 
 import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingRoomType;
-import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestException;
+import com.bestzedcoder.project3.booking_tour_hotel.rabbit.RabbitProducer;
 import com.bestzedcoder.project3.booking_tour_hotel.service.iml.MacService;
 import com.bestzedcoder.project3.booking_tour_hotel.service.iml.QRCodeService;
 import jakarta.mail.MessagingException;
@@ -10,19 +10,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 @Service
 @RequiredArgsConstructor
-@Async
 public class MailService implements IEmailService {
   private final JavaMailSender mailSender;
   private final TemplateEngine templateEngine;
   private final MacService macService;
   private final QRCodeService qrCodeService;
+  private final RabbitProducer rabbitProducer;
 
   public void sendVerificationEmail(MailDetails mailDetails) {
     Context context = new Context();

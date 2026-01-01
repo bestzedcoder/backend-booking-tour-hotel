@@ -6,6 +6,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.GetUserAllResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.PageResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.UserResponse;
+import com.bestzedcoder.project3.booking_tour_hotel.enums.EmailType;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestException;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.ResourceNotFoundException;
 import com.bestzedcoder.project3.booking_tour_hotel.mail.IEmailService;
@@ -15,6 +16,8 @@ import com.bestzedcoder.project3.booking_tour_hotel.model.ImageProfile;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Profile;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Role;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
+import com.bestzedcoder.project3.booking_tour_hotel.rabbit.EmailMessage;
+import com.bestzedcoder.project3.booking_tour_hotel.rabbit.RabbitProducer;
 import com.bestzedcoder.project3.booking_tour_hotel.redis.IRedisService;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.RoleRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
@@ -45,7 +48,8 @@ public class UserService implements IUserService {
   private final RoleRepository roleRepository;
   private final ICloudinaryService cloudinaryService;
   private final IRedisService redisService;
-  private final IEmailService emailService;
+//  private final IEmailService emailService;
+  private final RabbitProducer rabbitProducer;
 
   @Override
   @Transactional
@@ -95,7 +99,10 @@ public class UserService implements IUserService {
         .fullName(fullName)
         .username(username)
         .build();
-    this.emailService.sendInfoUserDetails(emailDetails);
+    EmailMessage emailMessage = new EmailMessage();
+    emailMessage.setMessageType(EmailType.CREATE_USER);
+    emailMessage.setMailDetails(emailDetails);
+    this.rabbitProducer.sendEmail(emailMessage);
     return ApiResponse.builder().success(true).message("Created user successfully").build();
 
   }

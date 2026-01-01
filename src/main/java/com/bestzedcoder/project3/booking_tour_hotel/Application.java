@@ -23,7 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableMethodSecurity
 @SpringBootApplication
 @RequiredArgsConstructor
-@EnableAsync
+//@EnableAsync
 @Slf4j
 public class Application implements CommandLineRunner {
 	private final RoleRepository roleRepository;

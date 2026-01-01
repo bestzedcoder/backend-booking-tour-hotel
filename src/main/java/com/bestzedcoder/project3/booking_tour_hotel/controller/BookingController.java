@@ -12,7 +12,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.mapper.BookingMapper;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Booking;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
 import com.bestzedcoder.project3.booking_tour_hotel.rabbit.BookingMessage;
-import com.bestzedcoder.project3.booking_tour_hotel.rabbit.BookingProducer;
+import com.bestzedcoder.project3.booking_tour_hotel.rabbit.RabbitProducer;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IBookingService;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -37,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasRole('CUSTOMER')")
 public class BookingController {
   private final IBookingService bookingService;
-  private final BookingProducer bookingProducer;
+  private final RabbitProducer rabbitProducer;
   private final BookingMapper bookingMapper;
 
   @PostMapping("/hotel/{hotelId}/room/{roomId}")
@@ -51,7 +50,7 @@ public class BookingController {
     msg.setRoomId(roomId);
     msg.setHotelRequest(bookingHotelRequest);
 
-    bookingProducer.send(msg);
+    rabbitProducer.sendBooking(msg);
 
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(ApiResponse.builder()
@@ -72,7 +71,7 @@ public class BookingController {
     msg.setTourId(tourId);
     msg.setTourRequest(bookingTourRequest);
 
-    bookingProducer.send(msg);
+    rabbitProducer.sendBooking(msg);
 
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(ApiResponse.builder()

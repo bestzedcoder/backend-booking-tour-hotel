@@ -7,13 +7,20 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class BookingProducer {
+public class RabbitProducer {
 
   private final RabbitTemplate rabbitTemplate;
 
-  public void send(BookingMessage message) {
+  public void sendBooking(BookingMessage message) {
     rabbitTemplate.convertAndSend(
         RabbitConfig.BOOKING_QUEUE,
+        message
+    );
+  }
+
+  public void sendEmail(EmailMessage message) {
+    rabbitTemplate.convertAndSend(
+        RabbitConfig.EMAIL_QUEUE,
         message
     );
   }

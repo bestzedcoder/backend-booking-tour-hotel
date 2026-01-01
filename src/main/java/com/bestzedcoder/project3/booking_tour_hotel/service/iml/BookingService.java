@@ -8,6 +8,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.dto.response.BookingSearchRe
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.PageResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingStatus;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingType;
+import com.bestzedcoder.project3.booking_tour_hotel.enums.EmailType;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.PaymentMethod;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.RoomStatus;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestException;
@@ -23,6 +24,8 @@ import com.bestzedcoder.project3.booking_tour_hotel.model.Room;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Tour;
 import com.bestzedcoder.project3.booking_tour_hotel.model.TourBooking;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
+import com.bestzedcoder.project3.booking_tour_hotel.rabbit.EmailMessage;
+import com.bestzedcoder.project3.booking_tour_hotel.rabbit.RabbitProducer;
 import com.bestzedcoder.project3.booking_tour_hotel.redis.IRedisService;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.BookingRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.HotelBookingRepository;
@@ -51,7 +54,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class BookingService implements IBookingService {
-  private final HotelRepository hotelRepository;
+//  private final HotelRepository hotelRepository;
   private final TourRepository tourRepository;
   private final RoomRepository roomRepository;
   private final BookingRepository bookingRepository;
@@ -59,7 +62,8 @@ public class BookingService implements IBookingService {
   private final TourBookingRepository tourBookingRepository;
   private final UserRepository userRepository;
   private final IRedisService redisService;
-  private final IEmailService emailService;
+//  private final IEmailService emailService;
+  private final RabbitProducer rabbitProducer;
 
   @Scheduled(cron = "0 * * * * *")
   public void autoFailExpiredBookings() {
@@ -131,6 +135,7 @@ public class BookingService implements IBookingService {
     }
 
     User customer = booking.getUser();
+    EmailMessage emailMessage = new EmailMessage();
     if (booking.getBookingType().equals(BookingType.HOTEL)) {
       HotelBooking hotelBooking = this.hotelBookingRepository.findByBookingId(id).orElseThrow(() -> new ResourceNotFoundException("hotel booking not found"));
       ContentInvoiceHotel cnt = ContentInvoiceHotel.builder()
@@ -149,7 +154,8 @@ public class BookingService implements IBookingService {
           .status(booking.getStatus())
           .bookingRoomType(hotelBooking.getBookingRoomType())
           .build();
-      this.emailService.sendInvoiceHotelEmail(cnt);
+      emailMessage.setMessageType(EmailType.INVOICE_HOTEL);
+      emailMessage.setContentInvoiceHotel(cnt);
     } else {
       TourBooking tourBooking = this.tourBookingRepository.findByBookingId(id).orElseThrow(() -> new ResourceNotFoundException("tour booking not found"));
       ContentInvoiceTour cnt = ContentInvoiceTour.builder()
@@ -165,8 +171,10 @@ public class BookingService implements IBookingService {
           .paymentMethod(booking.getPaymentMethod())
           .totalPrice(booking.getTotalPrice())
           .build();
-      this.emailService.sendInvoiceTourEmail(cnt);
+      emailMessage.setMessageType(EmailType.INVOICE_TOUR);
+      emailMessage.setContentInvoiceTour(cnt);
     }
+    this.rabbitProducer.sendEmail(emailMessage);
     return ApiResponse.builder().success(true).message("Bill đã được gửi thành công. Vui lòng vào email để xác nhận!").build();
   }
 

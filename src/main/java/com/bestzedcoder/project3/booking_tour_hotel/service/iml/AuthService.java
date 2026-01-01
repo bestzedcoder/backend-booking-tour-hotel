@@ -5,6 +5,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.ChangePasswordR
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.RefreshTokenReqest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserSignupRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
+import com.bestzedcoder.project3.booking_tour_hotel.enums.EmailType;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.BadRequestException;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.ResourceNotFoundException;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.UnauthorizedException;
@@ -14,6 +15,8 @@ import com.bestzedcoder.project3.booking_tour_hotel.mapper.UserMapper;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Profile;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Role;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
+import com.bestzedcoder.project3.booking_tour_hotel.rabbit.EmailMessage;
+import com.bestzedcoder.project3.booking_tour_hotel.rabbit.RabbitProducer;
 import com.bestzedcoder.project3.booking_tour_hotel.redis.IRedisService;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.RoleRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
@@ -44,11 +47,12 @@ public class AuthService implements IAuthService {
   private final JwtUtils jwtUtils;
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
-  private final IEmailService emailService;
+//  private final IEmailService emailService;
   private final ITokenService tokenService;
   private final RoleRepository roleRepository;
   private final IRedisService redisService;
   private final CookieUtils cookieUtils;
+  private final RabbitProducer rabbitProducer;
 
   @Value("${application.security.secretKey}")
   private String secretKey;
@@ -99,7 +103,10 @@ public class AuthService implements IAuthService {
     this.userRepository.save(newUser);
     String token = this.tokenService.generateAndSaveToken(newUser);
     MailDetails mailDetails = MailDetails.builder().to(newUser.getEmail()).token(token).username(newUser.getUsername()).build();
-    this.emailService.sendVerificationEmail(mailDetails);
+    EmailMessage emailMessage = new EmailMessage();
+    emailMessage.setMessageType(EmailType.CODE_VERIFY);
+    emailMessage.setMailDetails(mailDetails);
+    this.rabbitProducer.sendEmail(emailMessage);
     return ApiResponse.builder()
         .success(true)
         .message("Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản trước khi đăng nhập.")
