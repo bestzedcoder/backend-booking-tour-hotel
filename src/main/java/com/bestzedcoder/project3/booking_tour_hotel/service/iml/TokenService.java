@@ -16,7 +16,7 @@ public class TokenService implements ITokenService {
   private final TokenRepository tokenRepository;
   @Override
   public String generateAndSaveToken(User user) {
-    String generatedToken = this.generateActivationCode(8);
+    String generatedToken = this.generateActivationCode(6);
     var token = Token.builder().token(generatedToken)
         .createdAt(LocalDateTime.now())
         .expiresAt(LocalDateTime.now().plusMinutes(15))
@@ -28,9 +28,7 @@ public class TokenService implements ITokenService {
 
   @Override
   public boolean check(String token) {
-    Token t = this.tokenRepository.findByToken(token).orElseThrow(()->{
-      throw new UnauthorizedException("Token invalid");
-    });
+    Token t = this.tokenRepository.findByToken(token).orElseThrow(()->  new UnauthorizedException("Token invalid"));
     System.out.println("time now: " + LocalDateTime.now());
     System.out.println("time expires: " + t.getExpiresAt());
     return !LocalDateTime.now().isAfter(t.getExpiresAt());

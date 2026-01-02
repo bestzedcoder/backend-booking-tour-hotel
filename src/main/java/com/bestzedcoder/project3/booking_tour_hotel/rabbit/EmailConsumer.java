@@ -25,6 +25,10 @@ public class EmailConsumer {
       this.emailService.sendInvoiceHotelEmail(emailMessage.getContentInvoiceHotel());
     } else if (emailMessage.getMessageType().equals(EmailType.INVOICE_TOUR)) {
       this.emailService.sendInvoiceTourEmail(emailMessage.getContentInvoiceTour());
+    } else if (emailMessage.getMessageType().equals(EmailType.CODE_FORGET_PASSWORD)) {
+      this.emailService.sendVerificationResetPassword(emailMessage.getMailDetails());
+    } else if (emailMessage.getMessageType().equals(EmailType.RESET_PASSWORD)) {
+      this.emailService.sendResetPassword(emailMessage.getMailDetails());
     }
   }
 }

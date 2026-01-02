@@ -5,4 +5,6 @@ public interface IEmailService {
   void sendInfoUserDetails(MailDetails mailDetails);
   void sendInvoiceHotelEmail(ContentInvoiceHotel contentInvoiceHotel);
   void sendInvoiceTourEmail(ContentInvoiceTour contentInvoiceTour);
+  void sendVerificationResetPassword(MailDetails mailDetails);
+  void sendResetPassword(MailDetails mailDetails);
 }

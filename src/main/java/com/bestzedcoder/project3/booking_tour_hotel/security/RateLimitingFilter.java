@@ -28,7 +28,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
   // 10 yêu cầu trong vòng 1 phút
   private Bucket createNewBucket() {
     return Bucket.builder()
-        .addLimit(Bandwidth.classic(10, Refill.intervally(10, Duration.ofMinutes(1))))
+        .addLimit(Bandwidth.classic(50, Refill.intervally(10, Duration.ofMinutes(1))))
         .build();
   }
 

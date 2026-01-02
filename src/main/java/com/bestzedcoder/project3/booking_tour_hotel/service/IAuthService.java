@@ -15,4 +15,6 @@ public interface IAuthService {
   ApiResponse<?> logout(HttpServletResponse res);
   ApiResponse<?> authProfile();
   ApiResponse<?> changePassword(ChangePasswordRequest changePasswordRequest);
+  void forgetPassword(String email);
+  void verifyResetPassword(String code, String email);
 }

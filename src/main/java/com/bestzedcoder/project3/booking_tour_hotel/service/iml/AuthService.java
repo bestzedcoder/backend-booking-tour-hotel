@@ -1,6 +1,7 @@
 package com.bestzedcoder.project3.booking_tour_hotel.service.iml;
 
 import com.bestzedcoder.project3.booking_tour_hotel.common.CookieUtils;
+import com.bestzedcoder.project3.booking_tour_hotel.common.GenCode;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.ChangePasswordRequest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.RefreshTokenReqest;
 import com.bestzedcoder.project3.booking_tour_hotel.dto.requests.UserSignupRequest;
@@ -20,6 +21,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.rabbit.RabbitProducer;
 import com.bestzedcoder.project3.booking_tour_hotel.redis.IRedisService;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.RoleRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.UserRepository;
+import com.bestzedcoder.project3.booking_tour_hotel.security.GenPassword;
 import com.bestzedcoder.project3.booking_tour_hotel.security.JwtUtils;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IAuthService;
 import com.bestzedcoder.project3.booking_tour_hotel.service.ITokenService;
@@ -130,6 +132,49 @@ public class AuthService implements IAuthService {
     user.setPassword(this.passwordEncoder.encode(changePasswordRequest.getNewPassword()));
     this.userRepository.save(user);
     return ApiResponse.builder().success(true).message("Change password success").build();
+  }
+
+  @Override
+  public void forgetPassword(String email) {
+    if (!this.userRepository.existsByEmail(email)) {
+      throw new ResourceNotFoundException("Không tồn tại tài khoản với email là: " + email);
+    }
+    String code = GenCode.generateRandomNumber(6);
+    MailDetails mailDetails = MailDetails.builder()
+        .to(email)
+        .token(code)
+        .build();
+    EmailMessage emailMessage = new EmailMessage();
+    emailMessage.setMessageType(EmailType.CODE_FORGET_PASSWORD);
+    emailMessage.setMailDetails(mailDetails);
+    this.rabbitProducer.sendEmail(emailMessage);
+    this.redisService.saveKeyAndValue("resetPassword:email:"+email , code , "3" , TimeUnit.MINUTES );
+  }
+
+  @Override
+  public void verifyResetPassword(String code, String email) {
+    User user = this.userRepository.findByEmail(email);
+    if (user == null) {
+      throw new BadRequestException("Không tồn tại người dùng có email là: " + email);
+    }
+    String codeCheck = this.redisService.getValue("resetPassword:email:" + email, new TypeReference<String>() {});
+    if (codeCheck == null || !codeCheck.equals(code)) {
+      this.redisService.deleteKey("resetPassword:email:" + email);
+      throw new BadRequestException("mã xác thực reset mật khẩu đã hết hạn hoặc là không đúng vui lòng thực hiện lại reset mật khẩu.");
+    }
+
+    String newPassword = GenPassword.generateSecurePassword();
+    MailDetails mailDetails = MailDetails.builder()
+        .to(email)
+        .rawPassword(newPassword)
+        .build();
+
+    EmailMessage emailMessage = new EmailMessage();
+    emailMessage.setMessageType(EmailType.RESET_PASSWORD);
+    emailMessage.setMailDetails(mailDetails);
+    this.rabbitProducer.sendEmail(emailMessage);
+    user.setPassword(this.passwordEncoder.encode(newPassword));
+    this.userRepository.save(user);
   }
 
   @Override

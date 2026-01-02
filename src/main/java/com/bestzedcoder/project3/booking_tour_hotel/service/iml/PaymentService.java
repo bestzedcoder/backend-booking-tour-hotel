@@ -99,6 +99,6 @@ public class PaymentService implements IPaymentService {
 
     bookingRepository.save(payment.getBooking());
     paymentRepository.save(payment);
-    return String.format("http://localhost:5173/payment/result?status=%s&code=%s", resultStatus, txnNo);
+    return String.format("http://localhost:5173/client/payment/result?status=%s&code=%s", resultStatus, txnNo);
   }
 }

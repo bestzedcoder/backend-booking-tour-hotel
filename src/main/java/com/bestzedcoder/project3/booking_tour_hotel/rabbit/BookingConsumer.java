@@ -18,7 +18,7 @@ public class BookingConsumer {
 
   @RabbitListener(
       queues = RabbitConfig.BOOKING_QUEUE,
-      concurrency = "1"
+      concurrency = "2"
   )
   public void consume(BookingMessage msg) {
 

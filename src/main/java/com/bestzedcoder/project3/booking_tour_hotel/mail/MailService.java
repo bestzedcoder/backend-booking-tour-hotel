@@ -178,4 +178,45 @@ public class MailService implements IEmailService {
       throw new RuntimeException("Gửi email thất bại", e);
     }
   }
+
+  @Override
+  public void sendVerificationResetPassword(MailDetails mailDetails) {
+    Context context = new Context();
+    context.setVariable("email", mailDetails.getTo());
+    context.setVariable("code", mailDetails.getToken());
+
+    String htmlContent = templateEngine.process("code-reset", context);
+
+    try {
+      MimeMessage message = mailSender.createMimeMessage();
+      MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+      helper.setTo(mailDetails.getTo());
+      helper.setSubject("Xác thực để reset password");
+      helper.setText(htmlContent, true);
+      mailSender.send(message);
+    } catch (MessagingException e) {
+      throw new RuntimeException("Gửi email thất bại", e);
+    }
+  }
+
+  @Override
+  public void sendResetPassword(MailDetails mailDetails) {
+    Context context = new Context();
+    context.setVariable("email", mailDetails.getTo());
+    context.setVariable("resetPassword", mailDetails.getRawPassword());
+    String htmlContent = templateEngine.process("reset-password", context);
+
+    try {
+      MimeMessage message = mailSender.createMimeMessage();
+      MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+      helper.setTo(mailDetails.getTo());
+      helper.setSubject("mật khẩu tài khoản của bạn");
+      helper.setText(htmlContent, true);
+      mailSender.send(message);
+    } catch (MessagingException e) {
+      throw new RuntimeException("Gửi email thất bại", e);
+    }
+  }
 }

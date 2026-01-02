@@ -34,9 +34,9 @@ public class TourMapper {
     tourResponse.setTourPrice(tour.getPrice());
     tourResponse.setDuration(tour.getDuration());
     tourResponse.setTourCity(tour.getCity());
-    tourResponse.setMaxPeople(tour.getMaxPeople());
     tourResponse.setStartDate(tour.getStartDate());
     tourResponse.setEndDate(tour.getEndDate());
+    tourResponse.setMaxPeople(tour.getMaxPeople());
     tourResponse.setImageTourUrls(tour.getImages().stream().map(ImageTour::getUrl).toList());
     tourResponse.setTourSchedules(tour.getSchedules().stream().map(TourMapper::toTourScheduleResponse).toList());
     return tourResponse;

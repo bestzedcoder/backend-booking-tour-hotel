@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 public class GenCode {
   private static final String PREFIX = "ORD";
   private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  private static final String NUMBERS = "0123456789";
   private static final int RANDOM_LENGTH = 5;
   private static final SecureRandom RANDOM = new SecureRandom();
   private static final DateTimeFormatter FORMATTER =
@@ -16,15 +17,19 @@ public class GenCode {
 
   public static String generateOrderCode() {
     String timePart = LocalDateTime.now().format(FORMATTER);
-    String randomPart = randomString(RANDOM_LENGTH);
+    String randomPart = randomString(RANDOM_LENGTH, CHARACTERS);
     return PREFIX + "-" + timePart + "-" + randomPart;
   }
 
-  private static String randomString(int length) {
+  public static String generateRandomNumber(int length) {
+    return randomString(length, NUMBERS);
+  }
+
+  private static String randomString(int length, String characters) {
     StringBuilder sb = new StringBuilder(length);
     for (int i = 0; i < length; i++) {
-      int index = RANDOM.nextInt(CHARACTERS.length());
-      sb.append(CHARACTERS.charAt(index));
+      int index = RANDOM.nextInt(characters.length());
+      sb.append(characters.charAt(index));
     }
     return sb.toString();
   }

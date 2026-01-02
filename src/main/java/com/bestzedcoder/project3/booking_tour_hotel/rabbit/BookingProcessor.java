@@ -17,6 +17,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.repository.RoomRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.TourBookingRepository;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.TourRepository;
 import jakarta.transaction.Transactional;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -65,6 +66,10 @@ public class BookingProcessor {
   public void processTour(BookingMessage msg) {
 
     Tour tour = this.tourRepository.findById(msg.getTourId()).orElseThrow(() -> new ResourceNotFoundException("tour not found"));
+//    if (tour.getStartDate().isAfter(LocalDate.now())) {
+//      throw new BadRequestException("Tour du lịch đã hết hạn đăng ký.");
+//    }
+
     if (msg.getTourRequest().getPeople() > tour.getMaxPeople()) {
       throw new BadRequestException("Số lượng thành viên vượt quá.");
     }

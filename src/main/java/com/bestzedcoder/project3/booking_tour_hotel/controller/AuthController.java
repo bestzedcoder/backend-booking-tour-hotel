@@ -5,6 +5,7 @@ import com.bestzedcoder.project3.booking_tour_hotel.dto.response.ApiResponse;
 import com.bestzedcoder.project3.booking_tour_hotel.exception.UnauthorizedException;
 import com.bestzedcoder.project3.booking_tour_hotel.service.IAuthService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
@@ -80,5 +81,30 @@ public class AuthController {
   public ResponseEntity<ApiResponse<?>> changePassword(@RequestBody @Valid ChangePasswordRequest changePasswordRequest) {
     ApiResponse<?> response = this.authService.changePassword(changePasswordRequest);
     return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("forget-password")
+  @Operation(summary = "Quên mật khẩu", description = "Gửi yêu cầu khôi phục mật khẩu tới email của người dùng.")
+  public ResponseEntity<ApiResponse<?>> forgetPassword(@RequestBody @Valid ForgetPasswordRequest request) {
+    this.authService.forgetPassword(request.getEmail());
+    return ResponseEntity.ok(
+        ApiResponse.builder()
+            .success(true)
+            .message("Hãy nhập mã xác thực được gửi về mail.")
+            .build()
+    );
+  }
+
+  @PostMapping("reset-password")
+  @Operation(summary = "Xác nhận đặt lại mật khẩu", description = "Xác nhận mã code từ email để hoàn tất quá trình đặt lại mật khẩu.")
+  public ResponseEntity<ApiResponse<?>> resetPassword(
+      @RequestBody @Valid ResetPasswordRequest request  ) {
+    this.authService.verifyResetPassword(request.getCode(), request.getEmail());
+    return ResponseEntity.ok(
+        ApiResponse.builder()
+            .success(true)
+            .message("Mật khẩu đã được thiết lập lại vui lòng vào mail kiểm tra.")
+            .build()
+    );
   }
 }
