@@ -56,6 +56,7 @@ public class TourService implements ITourService {
     newTour.setEndDate(tourCreatingRequest.getEndDate());
     newTour.setPrice(tourCreatingRequest.getTourPrice());
     newTour.setCity(tourCreatingRequest.getTourCity());
+//    newTour.setDeadline(tourCreatingRequest.getDeadline());
     int days = tourCreatingRequest.getDuration();
     List<TourSchedule> schedules = new ArrayList<>();
     for (int day = 0; day < days ; day++) {

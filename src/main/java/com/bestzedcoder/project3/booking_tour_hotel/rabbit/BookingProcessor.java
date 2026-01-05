@@ -66,9 +66,11 @@ public class BookingProcessor {
   public void processTour(BookingMessage msg) {
 
     Tour tour = this.tourRepository.findById(msg.getTourId()).orElseThrow(() -> new ResourceNotFoundException("tour not found"));
-//    if (tour.getStartDate().isAfter(LocalDate.now())) {
-//      throw new BadRequestException("Tour du lịch đã hết hạn đăng ký.");
-//    }
+
+    LocalDate deadline = tour.getStartDate().minusDays(1);
+    if (LocalDate.now().isAfter(deadline)) {
+      throw new BadRequestException("Tour du lịch đã hết hạn đăng ký (Hạn chót là 1 ngày trước khi khởi hành).");
+    }
 
     if (msg.getTourRequest().getPeople() > tour.getMaxPeople()) {
       throw new BadRequestException("Số lượng thành viên vượt quá.");

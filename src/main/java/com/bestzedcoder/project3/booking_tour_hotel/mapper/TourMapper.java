@@ -67,6 +67,7 @@ public class TourMapper {
     InfoTourDetails.InfoOwner ownerInfo = new InfoTourDetails.InfoOwner();
     ownerInfo.setFullName(owner.getProfile().getFullName());
     ownerInfo.setPhoneNumber(owner.getProfile().getPhoneNumber());
+    ownerInfo.setEmail(owner.getEmail());
     if (owner.getProfile().getImage() != null) {
       ownerInfo.setImageUrl(owner.getProfile().getImage().getUrl());
     }

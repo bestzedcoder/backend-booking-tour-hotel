@@ -20,6 +20,7 @@ public class InfoHotelDetails {
   @Data
   public static class InfoOwner {
     private String phoneNumber;
+    private String email;
     private String fullName;
   }
 }

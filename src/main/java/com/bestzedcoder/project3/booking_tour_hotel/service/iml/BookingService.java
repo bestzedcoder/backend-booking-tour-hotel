@@ -87,7 +87,9 @@ public class BookingService implements IBookingService {
   public ApiResponse<?> updateStatus(Long id, BookingStatus status) {
     Booking booking = this.bookingRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("booking not found"));
     if (booking.getStatus().equals(BookingStatus.CANCELLED))
-      throw new BadRequestException("Booking cancelled");
+      throw new BadRequestException("Đơn hàng đã bị hủy không thể thay đổi.");
+    if (booking.getStatus().equals(BookingStatus.CONFIRMED))
+      throw new BadRequestException("Đơn hàng đã thành công không thể thay đổi.");
     booking.setStatus(status);
     if(status.equals(BookingStatus.CANCELLED)) {
       handleCancelBooking(booking);

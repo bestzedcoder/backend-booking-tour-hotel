@@ -81,6 +81,7 @@ public class HotelMapper {
     InfoHotelDetails.InfoOwner ownerInfo = new InfoHotelDetails.InfoOwner();
     ownerInfo.setFullName(hotel.getOwner().getProfile().getFullName());
     ownerInfo.setPhoneNumber(hotel.getOwner().getProfile().getPhoneNumber());
+    ownerInfo.setEmail(hotel.getOwner().getEmail());
     details.setOwner(ownerInfo);
 
     return details;

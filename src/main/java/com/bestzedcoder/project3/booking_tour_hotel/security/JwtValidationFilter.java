@@ -89,6 +89,7 @@ public class JwtValidationFilter extends OncePerRequestFilter {
         || requestURI.contains("/v3/api-docs")
         || requestURI.contains("/vn-pay-callback")
         || requestURI.contains("/ws-booking")
+        || requestURI.contains("/ws-chat")
         || requestURI.contains("/test")
         || requestURI.contains("/forget-password")
         || requestURI.contains("/reset-password");

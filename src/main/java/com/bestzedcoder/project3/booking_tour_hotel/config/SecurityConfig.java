@@ -37,7 +37,7 @@ public class SecurityConfig {
               @Override
               public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                 CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(List.of("http://localhost:5174","http://localhost:5173"));
+                config.setAllowedOrigins(List.of("http://localhost:5174","http://localhost:5173" , "https://frontend-booking-hotel-tour.onrender.com"));
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                 config.setAllowedHeaders(List.of("*"));
                 config.setAllowCredentials(true);
@@ -52,7 +52,7 @@ public class SecurityConfig {
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(requests ->requests
             .requestMatchers("/auth/login","/auth/register","/auth/verify" , "/auth/refresh" ,  "/swagger-ui/**",
-                "/v3/api-docs/**","/payment/vn-pay-callback","/ws-booking/**" , "/test/**" , "/auth/forget-password" , "/auth/reset-password").permitAll()
+                "/v3/api-docs/**","/payment/vn-pay-callback","/ws-booking/**", "/ws-chat/**" , "/test/**" , "/auth/forget-password" , "/auth/reset-password").permitAll()
         .anyRequest().authenticated())
         .addFilterBefore(jwtValidationFilter, UsernamePasswordAuthenticationFilter.class)
         .oauth2Login(oauth2 -> oauth2.successHandler(oAuth2SuccessHandler));

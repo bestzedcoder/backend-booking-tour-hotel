@@ -23,6 +23,7 @@ public class InfoTourDetails {
   public static class InfoOwner {
     private String phoneNumber;
     private String fullName;
+    private String email;
     private String imageUrl;
   }
 }

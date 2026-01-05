@@ -52,8 +52,11 @@ public class Tour extends BaseEntity {
   @Column(nullable = false)
   private Integer duration;
 
-  @Column(name = "max_people")
+  @Column(name = "max_people", nullable = false)
   private Integer maxPeople;
+
+//  @Column(nullable = false)
+//  private LocalDate deadline;
 
   @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<TourSchedule> schedules = new ArrayList<>();

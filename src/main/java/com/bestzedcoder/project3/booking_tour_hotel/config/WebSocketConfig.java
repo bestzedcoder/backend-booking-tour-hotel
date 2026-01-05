@@ -25,6 +25,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry.addEndpoint("/ws-booking")
-        .setAllowedOriginPatterns("http://localhost:5174", "http://127.0.0.1:5174","http://localhost:5173", "http://127.0.0.1:5173");;
+        .setAllowedOriginPatterns("http://localhost:5174", "http://127.0.0.1:5174","http://localhost:5173", "http://127.0.0.1:5173" , "https://frontend-booking-hotel-tour.onrender.com");
+
+    registry.addEndpoint("/ws-chat")
+        .setAllowedOriginPatterns("http://localhost:5174", "http://127.0.0.1:5174","http://localhost:5173", "http://127.0.0.1:5173" , "https://frontend-booking-hotel-tour.onrender.com");
   }
 }

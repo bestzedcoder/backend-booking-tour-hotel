@@ -28,6 +28,9 @@ public class TourCreatingRequest {
   @NotNull(message = "Ngày kết thúc không được để trống")
   private LocalDate endDate;
 
+//  @NotNull(message = "Hạn đăng ký không được để trống")
+//  private LocalDate deadline;
+
   @Min(value = 1, message = "Thời lượng tour phải lớn hơn hoặc bằng 1 ngày")
   private int duration;
 
