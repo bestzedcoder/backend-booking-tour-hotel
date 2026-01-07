@@ -79,7 +79,7 @@ public class AuthService implements IAuthService {
         .secure(false)
         .httpOnly(true)
         .path("/api/auth")
-        .sameSite("None")
+        .sameSite("Lax")
         .build();
     res.setHeader(HttpHeaders.SET_COOKIE , cookie.toString());
     return ApiResponse.builder().success(true).data(Map.of("access_token" , access_token)).message("login success").build();
@@ -215,7 +215,7 @@ public class AuthService implements IAuthService {
     this.redisService.deleteKey("auth:accessToken:"+user.getId());
     this.redisService.deleteKey("auth:refreshToken:"+user.getId());
     ResponseCookie cookie = ResponseCookie.from("refresh_token","")
-        .sameSite("None")
+        .sameSite("Lax")
         .maxAge(0)
         .secure(false)
         .httpOnly(true)

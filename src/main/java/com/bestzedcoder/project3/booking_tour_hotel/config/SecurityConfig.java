@@ -37,7 +37,7 @@ public class SecurityConfig {
               @Override
               public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                 CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(List.of("http://localhost:5174","http://localhost:5173" , "https://frontend-booking-hotel-tour.onrender.com"));
+                config.setAllowedOrigins(List.of("http://localhost:5174","http://localhost:5173" , "http://160.30.172.199:5173" , "https://frontend-booking-hotel-tour.onrender.com"));
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                 config.setAllowedHeaders(List.of("*"));
                 config.setAllowCredentials(true);
