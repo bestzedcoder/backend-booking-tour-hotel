@@ -64,6 +64,7 @@ public class BookingService implements IBookingService {
   private final IRedisService redisService;
 //  private final IEmailService emailService;
   private final RabbitProducer rabbitProducer;
+  private final BookingMapper bookingMapper;
 
   @Scheduled(cron = "0 * * * * *")
   public void autoFailExpiredBookings() {
@@ -108,7 +109,7 @@ public class BookingService implements IBookingService {
     return ApiResponse.builder()
         .success(true)
         .message("Booking found")
-        .data(bookings.stream().map(BookingMapper::bookingToBookingSearchResponse).toList())
+        .data(bookings.stream().map(bookingMapper::bookingToBookingSearchResponse).toList())
         .build();
   }
 
@@ -235,7 +236,7 @@ public class BookingService implements IBookingService {
         .currentPages(page)
         .totalPages(pageData.getTotalPages())
         .totalElements(pageData.getTotalElements())
-        .result(pageData.getContent().stream().map(BookingMapper::bookingToBookingSearchResponse).toList())
+        .result(pageData.getContent().stream().map(bookingMapper::bookingToBookingSearchResponse).toList())
         .build();
     this.redisService.saveKeyAndValue(keyCache , response , "2" , TimeUnit.MINUTES);
     return response;
@@ -337,7 +338,7 @@ public class BookingService implements IBookingService {
         .pageSizes(limit)
         .totalElements(pageResult.getTotalElements())
         .totalPages(pageResult.getTotalPages())
-        .result(pageResult.getContent().stream().map(BookingMapper::bookingToBookingSearchResponse).toList())
+        .result(pageResult.getContent().stream().map(bookingMapper::bookingToBookingSearchResponse).toList())
         .build();
 
     redisService.saveKeyAndValue(keyCache, response, "1", TimeUnit.MINUTES);

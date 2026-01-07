@@ -78,7 +78,7 @@ public class AuthService implements IAuthService {
         .maxAge(Long.parseLong(this.expirationTimeRefresh))
         .secure(false)
         .httpOnly(true)
-        .path("/")
+        .path("/api/auth")
         .sameSite("None")
         .build();
     res.setHeader(HttpHeaders.SET_COOKIE , cookie.toString());
@@ -219,7 +219,7 @@ public class AuthService implements IAuthService {
         .maxAge(0)
         .secure(false)
         .httpOnly(true)
-        .path("/")
+        .path("/api/auth")
         .build();
     res.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     return ApiResponse.builder().success(true).message("logout success").build();

@@ -46,9 +46,12 @@ public class UserController {
 
   @GetMapping
   @Operation(summary = "Lấy danh sách tất cả người dùng")
-  public ResponseEntity<PageResponse<?>> getAllUsers(@RequestParam(defaultValue = "1") int page,
-      @RequestParam(defaultValue = "10") int limit) {
-    PageResponse<?> response = this.userService.getAllUsers(page, limit);
+  public ResponseEntity<PageResponse<?>> getAllUsers(
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(defaultValue = "10") int limit,
+      @RequestParam(required = false) String role,
+      @RequestParam(required = false) String email) {
+    PageResponse<?> response = this.userService.getAllUsers(page, limit, role , email);
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 

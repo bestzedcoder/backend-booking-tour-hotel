@@ -150,8 +150,12 @@ public class UserService implements IUserService {
   }
 
   @Override
-  public PageResponse<?> getAllUsers(int page,int limit) {
-    String key = String.format("search:users:page:%d:limit:%d", page, limit);
+  public PageResponse<?> getAllUsers(int page, int limit, String role, String email) {
+    String key = String.format("search:users:page:%d:limit:%d:role:%s:email:%s", page, limit,
+        role != null ? role : "" ,email != null ? email : "");
+    if (role != null) {
+      role = "ROLE_" + role.toUpperCase();
+    }
     PageResponse<UserResponse> dataCache = this.redisService.getValue(key, new TypeReference<PageResponse<UserResponse>>() {});
     if(dataCache != null) {
       dataCache.setSuccess(Boolean.TRUE);
@@ -161,7 +165,7 @@ public class UserService implements IUserService {
     }
 
     Pageable pageable = PageRequest.of(page - 1, limit);
-    Page<User> data = this.userRepository.findAll(pageable);
+    Page<User> data = this.userRepository.findAllByRoleNameAndEmail(role , email, pageable);
     List<GetUserAllResponse> users = data.getContent().stream().map(UserMapper::toGetUserAllResponse).toList();
     PageResponse<GetUserAllResponse> response = PageResponse.<GetUserAllResponse>builder()
         .currentPages(page)

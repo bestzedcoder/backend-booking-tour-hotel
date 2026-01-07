@@ -8,11 +8,14 @@ import com.bestzedcoder.project3.booking_tour_hotel.dto.response.TourBookingResp
 import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingStatus;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.BookingType;
 import com.bestzedcoder.project3.booking_tour_hotel.enums.PaymentMethod;
+import com.bestzedcoder.project3.booking_tour_hotel.exception.ResourceNotFoundException;
 import com.bestzedcoder.project3.booking_tour_hotel.model.Booking;
 import com.bestzedcoder.project3.booking_tour_hotel.model.HotelBooking;
 import com.bestzedcoder.project3.booking_tour_hotel.model.TourBooking;
 import com.bestzedcoder.project3.booking_tour_hotel.model.User;
 import com.bestzedcoder.project3.booking_tour_hotel.repository.BookingRepository;
+import com.bestzedcoder.project3.booking_tour_hotel.repository.HotelBookingRepository;
+import com.bestzedcoder.project3.booking_tour_hotel.repository.TourBookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +23,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class BookingMapper {
   private final BookingRepository bookingRepository;
+  private final HotelBookingRepository hotelBookingRepository;
+  private final TourBookingRepository tourBookingRepository;
   public  Booking createBooking(PaymentMethod method, BookingType type, User user) {
     Booking booking = new Booking();
     booking.setPaymentMethod(method);
@@ -32,7 +37,7 @@ public class BookingMapper {
     return this.bookingRepository.save(booking);
   }
 
-  public static BookingSearchResponse bookingToBookingSearchResponse(Booking booking) {
+  public BookingSearchResponse bookingToBookingSearchResponse(Booking booking) {
     BookingSearchResponse bookingSearchResponse = new BookingSearchResponse();
     bookingSearchResponse.setBookingId(booking.getId());
     bookingSearchResponse.setCode(booking.getBookingCode());
@@ -42,6 +47,30 @@ public class BookingMapper {
     bookingSearchResponse.setType(booking.getBookingType());
     bookingSearchResponse.setCreatedAt(booking.getCreatedAt());
     bookingSearchResponse.setUpdatedAt(booking.getUpdatedAt());
+    BookingSearchResponse.InfoCustomer customer = new BookingSearchResponse.InfoCustomer();
+    customer.setFullName(booking.getUser().getProfile().getFullName());
+    customer.setEmail(booking.getUser().getEmail());
+    customer.setPhoneNumber(booking.getUser().getProfile().getPhoneNumber());
+    bookingSearchResponse.setCustomer(customer);
+    BookingSearchResponse.InfoDetails details = new BookingSearchResponse.InfoDetails();
+    if (booking.getBookingType().equals(BookingType.HOTEL)) {
+      HotelBooking hotelBooking = this.hotelBookingRepository.findByBookingId(booking.getId()).orElseThrow(() -> new ResourceNotFoundException("Lỗi không tìm được."));
+      details.setName(hotelBooking.getHotelName());
+      details.setBookingRoomType(hotelBooking.getBookingRoomType());
+      details.setRoomType(hotelBooking.getRoomType());
+      details.setRoomName(hotelBooking.getRoomName());
+      details.setCheckInDate(hotelBooking.getCheckIn());
+      details.setCheckOutDate(hotelBooking.getCheckOut());
+      details.setDuration(hotelBooking.getDuration());
+    } else {
+      TourBooking tourBooking = this.tourBookingRepository.findByBookingId(booking.getId()).orElseThrow(() -> new ResourceNotFoundException("Lỗi không tìm được."));
+      details.setName(tourBooking.getTourName());
+      details.setCheckIn(tourBooking.getStartDate());
+      details.setCheckOut(tourBooking.getEndDate());
+      details.setDuration(tourBooking.getDuration());
+      details.setPeople(tourBooking.getPeople());
+    }
+    bookingSearchResponse.setDetails(details);
     return bookingSearchResponse;
   }
 

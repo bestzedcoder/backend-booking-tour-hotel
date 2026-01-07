@@ -12,6 +12,6 @@ public interface IUserService {
   ApiResponse<?> create(UserCreatingRequest request) throws BadRequestException;
   ApiResponse<?> getUserById(Long id);
   ApiResponse<?> updateUserById(Long id, UserUpdatingRequest request, MultipartFile image);
-  PageResponse<?> getAllUsers(int page,int limit);
+  PageResponse<?> getAllUsers(int page, int limit, String role, String email);
   ApiResponse<?> deleteUserById(Long id);
 }
