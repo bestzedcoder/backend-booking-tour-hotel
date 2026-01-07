@@ -76,7 +76,7 @@ public class AuthService implements IAuthService {
     this.redisService.saveKeyAndValue("auth:refreshToken:"+user.getId() , refresh_token , expirationTimeRefresh , TimeUnit.SECONDS);
     ResponseCookie cookie =  ResponseCookie.from("refresh_token" , refresh_token)
         .maxAge(Long.parseLong(this.expirationTimeRefresh))
-        .secure(true)
+        .secure(false)
         .httpOnly(true)
         .path("/")
         .sameSite("None")
@@ -217,7 +217,7 @@ public class AuthService implements IAuthService {
     ResponseCookie cookie = ResponseCookie.from("refresh_token","")
         .sameSite("None")
         .maxAge(0)
-        .secure(true)
+        .secure(false)
         .httpOnly(true)
         .path("/")
         .build();
